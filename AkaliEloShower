@@ -136,6 +136,7 @@ function AkalisMenu()
 		
 		-- Draw Menu --
 		AkaliMenu:addSubMenu("Draw settings", "drawing")
+			AkaliMenu.drawing:addParam("ndraw", "Disable all Drawing", SCRIPT_PARAM_ONOFF, false)
 			AkaliMenu.drawing:addParam("QRange", "Draw Q Range", SCRIPT_PARAM_ONOFF, true)
 			AkaliMenu.drawing:addParam("ERange", "Draw E Range", SCRIPT_PARAM_ONOFF, true)
 			AkaliMenu.drawing:addParam("RRange", "Draw R Range", SCRIPT_PARAM_ONOFF, true)
@@ -352,7 +353,7 @@ end
 --				Drawing Options			 --
 -------------------------------------------
 function OnDraw()
-	if AkaliMenu.drawing.ndraw then
+	if AkaliMenu.drawing.ndraw and if not myHero.death then
 	if AkaliMenu.drawing.QRange and Qready then 
 		DrawCircle(myHero.x, myHero.y, myHero.z, qRange, 0x111121)
 	end
