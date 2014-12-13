@@ -159,7 +159,8 @@ eDamage()
       if ValidTarget(minion, qRange) and AkaliMenu.lh.useQ and Qready and getDmg("Q", minion, myHero) >= minion.health then
 			CastSpell(_Q, minion)
 		end
-      if ValidTarget(minion, eRange) and AkaliMenu.lh.useE and Eready and getDmg("E", minion, myHero)) >= minion.health then 
+      if ValidTarget(minion, eRange) and AkaliMenu.lh.useE and Eready and getDmg("E", minion, myHero) >= minion.health then 
+      			CastSpell(_E)
 			end
 		end
 	end
