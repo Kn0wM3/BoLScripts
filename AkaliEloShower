@@ -353,18 +353,19 @@ end
 --				Drawing Options			 --
 -------------------------------------------
 function OnDraw()
-	if AkaliMenu.drawing.ndraw and if not myHero.death then
-	if AkaliMenu.drawing.QRange and Qready then 
-		DrawCircle(myHero.x, myHero.y, myHero.z, qRange, 0x111121)
-	end
-	if AkaliMenu.drawing.ERange and Eready then
-		DrawCircle(myHero.x, myHero.y, myHero.z, eRange, 0x111111)
-	end
-	if AkaliMenu.drawing.RRange and Rready then
-		DrawCircle(myHero.x, myHero.y, myHero.z, rRange, 0x111111)
-	end
-	if AkaliMenu.drawing.ChasingR and Rready then
-		DrawCircle(myHero.x, myHero.y, myHero.z, 500, 0x111111)
+	if not myHero.dead then
+		if AkaliMenu.drawing.ndraw then
+			if AkaliMenu.drawing.QRange and Qready then 
+			DrawCircle(myHero.x, myHero.y, myHero.z, qRange, 0x111121)
+		end
+			if AkaliMenu.drawing.ERange and Eready then
+				DrawCircle(myHero.x, myHero.y, myHero.z, eRange, 0x111111)
+		end
+			if AkaliMenu.drawing.RRange and Rready then
+			DrawCircle(myHero.x, myHero.y, myHero.z, rRange, 0x111111)
+		end
+			if AkaliMenu.drawing.ChasingR and Rready then
+			DrawCircle(myHero.x, myHero.y, myHero.z, 500, 0x111111)
 		end
 	end
 end
