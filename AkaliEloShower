@@ -1,0 +1,369 @@
+--[[
+		Akali Elo Shower
+		Rewritten by Kn0wM3 (Original was AkaliRevenge)
+		This is my first script. Tell me what I should add and what could be improved.
+		Please report any bugs on the Forum!
+		
+		Feautures:
+				  Customaziable Combo
+				  Customaziable Harass
+				  SupportItems(HexTech, LichBane, DFG, Zhonays)
+				  AutoLifeSave with Zhonays
+				  AutoIgnite
+				  AutoFarm
+				  LanceClear
+				  SoW Orbwalker
+				  Draw of all Ranges
+				  
+		Features(Soon):
+				  JungleClear
+				  ChatSpammFix
+				  DamageCalculations
+				  SOW/MMA support
+	
+		Changelog:
+		0.1:
+		Initial Release
+]]
+
+
+if myHero.charName ~= "Akali" then return end
+
+-------------------------------------------
+--				Libs					 --
+-------------------------------------------
+require "spellDmg"
+require "SOW"
+require "VPrediction"
+
+-------------------------------------------
+--				Locals					 --
+-------------------------------------------
+local qRange = 600
+local eRange = 325
+local rRange = 800
+
+-------------------------------------------
+--		Target Selector & Autoupdater	--
+-------------------------------------------
+local ts
+
+local AUTO_UPDATE = true
+local version = 0.1
+
+
+if AUTO_UPDATE then
+    local server_version = tonumber(GetWebResult("raw.github.com", "/Kn0wM3/BoLScripts/master/AkaliEloShowerVersion")) -- I have a file on my github which just shows the newest version, what I'm doing here is downloading it and comparing with the constant value above and if there is a newer version then go through the update process
+    if server_version > version then -- compare
+        PrintChat("Script is outdated. Updating to version: " .. server_version .. "...")
+        DownloadFile("https://raw.githubusercontent.com/Kn0wM3/BoLScripts/master/AkaliEloShower", SCRIPT_PATH .. "AkaliRevenge.lua", function() -- Download the new script (we're literally overwriting the current one)
+            PrintChat("Script updated. Please reload (Double F9).")
+        end)
+    end
+    if server_version > version then return end -- Quit out the script as it will cause issues
+			if server_version == version then  
+		PrintChat("<font color='#aaff34'>Already newest Version! Thanks for using Akali Elo Shower, Report bugs on the forum</font>")
+	end
+end
+ 
+-------------------------------------------
+--				Function OnLoad			 --
+-------------------------------------------
+function OnLoad()
+
+enemyMinions = minionManager(MINION_ENEMY, qRange, myHero, MINION_SORT_MAXHEALTH_DEC)
+VP = VPrediction()
+SOWi = SOW(VP)
+SOWi:RegisterAfterAttackCallback(AutoAttackRese)
+Variables()
+AkalisMenu()
+ts = TargetSelector(TARGET_LESS_CAST_PRIORITY, 650)
+
+-- Checking for Ignite --
+if myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") then 
+	ignite = SUMMONER_1
+		elseif myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") then 
+	ignite = SUMMONER_2
+		else 
+	ignite = nil
+	end
+	
+end
+
+-------------------------------------------
+--				AkalisMenu				 --
+-------------------------------------------
+function AkalisMenu()
+
+	AkaliMenu = scriptConfig("Akali Elo Shower", "Akali")
+	-- Combo Menu --
+		AkaliMenu:addSubMenu("Combo Settings", "combo")
+			AkaliMenu.combo:addParam("ComboKey", "Full Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
+			AkaliMenu.combo:addParam("useQ", "Use Q in Combo", SCRIPT_PARAM_ONOFF, true)
+			AkaliMenu.combo:addParam("useE", "Use E in Combo", SCRIPT_PARAM_ONOFF, true)
+			AkaliMenu.combo:addParam("useR", "Use R in Combo", SCRIPT_PARAM_ONOFF, true)
+			AkaliMenu.combo:addParam("ChaseR", "Chase with R only", SCRIPT_PARAM_ONOFF, false)
+			
+	-- Harass menu --
+		AkaliMenu:addSubMenu("Harass Settings", "harass")
+			AkaliMenu.harass:addParam("HarassKey", "Harass Key", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("A"))
+			AkaliMenu.harass:addParam("useQ", "Use Q in Harass", SCRIPT_PARAM_ONOFF, true)
+			AkaliMenu.harass:addParam("useE", "Use E in Harass", SCRIPT_PARAM_ONOFF, true)
+			
+	-- Lane Clear --
+		AkaliMenu:addSubMenu("Lane Clear Settings", "lc")
+			AkaliMenu.lc:addParam("laneclear", "Laneclear mode", SCRIPT_PARAM_ONKEYDOWN, false, 86)
+			AkaliMenu.lc:addParam("useQ", "Use Q in laneclear", SCRIPT_PARAM_ONOFF, true)
+			AkaliMenu.lc:addParam("useE", "Use E in laneclear", SCRIPT_PARAM_ONOFF, true)
+	
+	-- Last hitting --
+		AkaliMenu:addSubMenu("Last hit settings", "lh")
+			AkaliMenu.lh:addParam("lasthit", "Lasthit mode", SCRIPT_PARAM_ONKEYDOWN, false, 88)
+			AkaliMenu.lh:addParam("useQ", "Use Q to lasthit", SCRIPT_PARAM_ONOFF, false)
+			AkaliMenu.lh:addParam("useE", "Use E to lasthit", SCRIPT_PARAM_ONOFF, true)
+			
+	-- Item Management Menu --
+		AkaliMenu:addSubMenu("Item Management", "IM")
+			AkaliMenu.IM:addParam("AutoZhonya", "Zhonya's Low health", SCRIPT_PARAM_ONOFF, true)
+			AkaliMenu.IM:addParam("useDFG", "Use Deathfire grasp", SCRIPT_PARAM_ONOFF, true)
+			AkaliMenu.IM:addParam("useBWC", "Use BilgeWaterCutlass", SCRIPT_PARAM_ONOFF, true)
+			AkaliMenu.IM:addParam("useHEX", "Use HexTech Revolver", SCRIPT_PARAM_ONOFF, true)
+		
+	-- Extras Menu --
+		AkaliMenu:addSubMenu("Extras", "SS")
+			AkaliMenu.SS:addParam("IgniteUse", "Use Ignite in combo", SCRIPT_PARAM_ONOFF, true)
+			AkaliMenu.SS:addParam("usepackets", "Use packets (VIP ONLY)", SCRIPT_PARAM_ONOFF, true)
+		
+		-- Draw Menu --
+		AkaliMenu:addSubMenu("Draw settings", "drawing")
+			AkaliMenu.drawing:addParam("QRange", "Draw Q Range", SCRIPT_PARAM_ONOFF, true)
+			AkaliMenu.drawing:addParam("ERange", "Draw E Range", SCRIPT_PARAM_ONOFF, true)
+			AkaliMenu.drawing:addParam("RRange", "Draw R Range", SCRIPT_PARAM_ONOFF, true)
+			AkaliMenu.drawing:addParam("ChasingR", "Draw R Chase Range", SCRIPT_PARAM_ONOFF, false)
+			
+	-- SOW Orbwalking handler --
+		AkaliMenu:addSubMenu("Orbwalker", "SOWiorb")	
+			SOWi:LoadToMenu(AkaliMenu.SOWiorb)
+			
+			
+end
+
+-------------------------------------------
+--				LastHitting				 --
+-------------------------------------------
+function LastHitMode()
+eDamage()
+  for i, minion in pairs(enemyMinions.objects) do
+    if minion ~= nil then
+      if ValidTarget(minion, qRange) and AkaliMenu.lh.useQ and Qready and getDmg("Q", minion, myHero) >= minion.health then
+			CastSpell(_Q, minion)
+		end
+      if ValidTarget(minion, eRange) and AkaliMenu.lh.useE and Eready and getDmg("E", minion, myHero)) >= minion.health then 
+			end
+		end
+	end
+
+-------------------------------------------
+--				LaneClear				 --
+-------------------------------------------
+function LaneclearMode() 
+  for i, minion in pairs(enemyMinions.objects) do
+    if minion ~= nil and ValidTarget(minion, qRange) and Qready and AkaliMenu.lc.useQ then
+      if getDmg("Q", minion, myHero) >= minion.health then
+        CastSpell(_Q, minion)
+      else
+        CastSpell(_Q, minion)
+      end
+    end
+    if minion ~= nil and ValidTarget(minion, eRange) and Eready and AkaliMenu.lc.useE then
+        CastSpell(_E)
+		end
+	end
+end
+
+-------------------------------------------
+--				ItemManagement			 --
+-------------------------------------------
+ function ItemManagement()	
+		BilgeWaterCutlass = GetInventorySlotItem(3144)
+		BilgeWaterCutlassR = (BilgeWaterCutlass ~= nil and myHero:CanUseSpell(BilgeWaterCutlass))
+		
+		HexTech = GetInventorySlotItem(3146)
+		HexTechR = (HexTech ~= nil and myHero:CanUseSpell(HexTech))
+		
+		Lich = GetInventorySlotItem(3100)
+		LichR = (Lich ~= nil and myHero:CanUseSpell(Lich) == READY)
+		
+		DFG = GetInventorySlotItem(3128)
+		DFGR = (DFG ~= nil and myHero:CanUseSpell(DFG) == READY)
+		
+		Zhonya = GetInventorySlotItem(3157)
+		ZhonyaReady = (Zhonya ~= nil and myHero:CanUseSpell(Zhonya) == READY)
+
+end
+
+-------------------------------------------
+--				Variables				 --
+-------------------------------------------
+function Variables()
+		Qready = (myHero:CanUseSpell(_Q) == READY)
+		Eready = (myHero:CanUseSpell(_E) == READY)
+		Rready = (myHero:CanUseSpell(_R) == READY)
+end
+
+-------------------------------------------
+--				Function OnTick			 --
+-------------------------------------------
+function OnTick()
+	ts:update()
+	Variables()
+	ItemManagement()
+	SOWi:EnableAttacks()
+	enemyMinions:update()
+
+	if AkaliMenu.lh.lasthit then LastHitMode() end
+	if AkaliMenu.lc.laneclear then LaneclearMode() end
+
+	if (myHero.health < 400) and AkaliMenu.IM.AutoZhonya then
+		CastSpell(Zhonya)
+	end
+	
+	if (ts.target ~= nil) then
+		if (AkaliMenu.harass.HarassKey) then
+			FullHarass()
+		end
+	end
+
+	if (ts.target ~= nil) then
+		if (AkaliMenu.combo.ComboKey) then
+			FullCombo()
+		end
+	end
+end
+
+-------------------------------------------
+--				Harass					 --
+-------------------------------------------
+function FullHarass()
+
+	if GetDistance(ts.target, myHero) <= 600 then
+		if ValidTarget(ts.target, 600) then
+			if VIP_USER and AkaliMenu.SS.usepackets then
+				Packet("S_CAST", {spellId = _Q, targetNetworkId = ts.target.networkID}):send()
+			else
+				CastSpell(_Q, ts.target)
+			
+			end
+		end
+	end
+end
+
+-------------------------------------------
+--				Combo					 --
+-------------------------------------------
+function FullCombo()
+	if AkaliMenu.combo.ComboKey and DFGR and AkaliMenu.IM.useDFG and GetDistance(ts.target, myHero) < 500 then 
+		CastSpell(DFG, ts.target) 
+	end
+	
+	if AkaliMenu.combo.ComboKey and BilgeWaterCutlassR and AkaliMenu.IM.useBWC and GetDistance(ts.target, myHero) < 500 then
+		CastSpell(BilgeWaterCutlass, ts.target)
+	end
+	
+	if AkaliMenu.combo.ComboKey and HexTechR and AkaliMenu.IM.useHEX and GetDistance(ts.target, myHero) < 500 then
+		CastSpell(HexTech, ts.target)
+	end
+	
+	if AkaliMenu.SS.IgniteUse and GetDistance(ts.target) < 600 and ts.target.health <= (50 + (20 * myHero.level))then
+		CastSpell(ignite, ts.target)
+	end
+	
+	if AkaliMenu.combo.useQ and Qready then
+		CastQ()
+	end
+	if AkaliMenu.combo.useE and Eready then
+		CastE()
+	end
+	if AkaliMenu.combo.useR and Rready then
+	if not AkaliMenu.combo.ChaseR then
+		CastR()
+	else if
+	AkaliMenu.combo.ChaseR then
+		ChaseRActivate()
+			end
+		end	
+	end
+end
+
+-------------------------------------------
+--				Cast Functions			 --
+-------------------------------------------
+function ChaseRActivate()
+if GetDistance(ts.target, myHero) >= 450 then
+	if GetDistance(ts.target, myHero) <= 800 then
+		if ValidTarget(ts.target) then
+			if VIP_USER and AkaliMenu.SS.usepackets then
+				Packet("S_CAST", {spellId = _R}):send()
+			else
+				CastSpell(_R, ts.target)
+				end
+			end
+		end
+	end
+end
+
+function CastQ()
+	if GetDistance(ts.target, myHero) <= 600 then
+		if ValidTarget(ts.target, 600) then
+			    if VIP_USER and AkaliMenu.SS.usepackets then
+						Packet("S_CAST", {spellId = _Q, targetNetworkId = ts.target.networkID}):send()
+					else
+						CastSpell(_Q, ts.target)
+					end
+			end
+		end
+end
+
+function CastE()
+	if GetDistance(ts.target, myHero) <= 325 then
+		if ValidTarget(ts.target, 325) then
+			if VIP_USER and AkaliMenu.SS.usepackets then
+				Packet("S_CAST", {spellId = _E}):send()
+				else
+					CastSpell(_E, ts.target)
+			end
+		end
+	end
+end
+
+function CastR()
+if GetDistance(ts.target, myHero) <= 800 then
+			if ValidTarget(ts.target, 800) then
+				if VIP_USER and AkaliMenu.SS.usepackets then
+					Packet("S_CAST", {spellId = _R, targetNetworkId = ts.target.networkID}):send()
+				else
+					CastSpell(_R, ts.target)
+			end
+		end	
+	end
+end
+
+-------------------------------------------
+--				Drawing Options			 --
+-------------------------------------------
+function OnDraw()
+	if AkaliMenu.drawing.ndraw then
+	if AkaliMenu.drawing.QRange and Qready then 
+		DrawCircle(myHero.x, myHero.y, myHero.z, qRange, 0x111121)
+	end
+	if AkaliMenu.drawing.ERange and Eready then
+		DrawCircle(myHero.x, myHero.y, myHero.z, eRange, 0x111111)
+	end
+	if AkaliMenu.drawing.RRange and Rready then
+		DrawCircle(myHero.x, myHero.y, myHero.z, rRange, 0x111111)
+	end
+	if AkaliMenu.drawing.ChasingR and Rready then
+		DrawCircle(myHero.x, myHero.y, myHero.z, 500, 0x111111)
+		end
+	end
+end
