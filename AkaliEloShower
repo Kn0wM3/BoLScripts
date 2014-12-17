@@ -61,8 +61,9 @@ if AUTO_UPDATE then
         end)
     end
     if server_version > version then return end -- Quit out the script as it will cause issues
-			if server_version == version then  
-		PrintChat("<font color='#aaff34'>Already newest Version! Thanks for using Akali Elo Shower, Report bugs on the forum</font>")
+			if server_version == version then
+		PrintChat("<font color='#aaff34'>Already newest Version!</font>")
+		PrintChat("<font color='#aaff34'>Thanks for using Akali Elo Shower, Report bugs on the forum!</font>")
 	end
 end
  
@@ -87,7 +88,6 @@ if myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") then
 		else 
 	ignite = nil
 	end
-	
 end
 
 -------------------------------------------
@@ -106,7 +106,8 @@ function AkalisMenu()
 			
 	-- Harass menu --
 		AkaliMenu:addSubMenu("Harass Settings", "harass")
-			AkaliMenu.harass:addParam("HarassKey", "Harass Key", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("A"))
+			AkaliMenu.harass:addParam("HarassKey", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("A"))
+			AkaliMenu.harass:addParam("AutoHarassKey", "AutoHarass", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("G"))
 			AkaliMenu.harass:addParam("useQ", "Use Q in Harass", SCRIPT_PARAM_ONOFF, true)
 			AkaliMenu.harass:addParam("useE", "Use E in Harass", SCRIPT_PARAM_ONOFF, true)
 			
@@ -131,8 +132,8 @@ function AkalisMenu()
 		
 	-- Extras Menu --
 		AkaliMenu:addSubMenu("Extras", "SS")
-			AkaliMenu.SS:addParam("IgniteUse", "Use Ignite in combo", SCRIPT_PARAM_ONOFF, true)
-			AkaliMenu.SS:addParam("usepackets", "Use packets (VIP ONLY)", SCRIPT_PARAM_ONOFF, true)
+			AkaliMenu.SS:addParam("IgniteUse", "Use Ignite to Killsteal", SCRIPT_PARAM_ONOFF, true)
+			AkaliMenu.SS:addParam("usepackets", "Use packets (VIP ONLY)", SCRIPT_PARAM_ONOFF, false)
 		
 		-- Draw Menu --
 		AkaliMenu:addSubMenu("Draw settings", "drawing")
@@ -153,17 +154,17 @@ end
 --				LastHitting				 --
 -------------------------------------------
 function LastHitMode()
-eDamage()
   for i, minion in pairs(enemyMinions.objects) do
     if minion ~= nil then
       if ValidTarget(minion, qRange) and AkaliMenu.lh.useQ and Qready and getDmg("Q", minion, myHero) >= minion.health then
 			CastSpell(_Q, minion)
-		end
+			end
       if ValidTarget(minion, eRange) and AkaliMenu.lh.useE and Eready and getDmg("E", minion, myHero) >= minion.health then 
-      			CastSpell(_E)
+			CastSpell(_E)
 			end
 		end
 	end
+end
 
 -------------------------------------------
 --				LaneClear				 --
@@ -235,7 +236,11 @@ function OnTick()
 			FullHarass()
 		end
 	end
-
+	if (ts.target ~= nil) then
+	if (AkaliMenu.harass.AutoHarassKey) then
+			FullHarass()
+		end
+	end
 	if (ts.target ~= nil) then
 		if (AkaliMenu.combo.ComboKey) then
 			FullCombo()
@@ -248,13 +253,25 @@ end
 -------------------------------------------
 function FullHarass()
 
-	if GetDistance(ts.target, myHero) <= 600 then
-		if ValidTarget(ts.target, 600) then
+if Qready and AkaliMenu.harass.useQ then
+if GetDistance(ts.target, myHero) <= 600 then
+	if ValidTarget(ts.target, 600) then
+		if VIP_USER and AkaliMenu.SS.usepackets then
+			Packet("S_CAST", {spellId = _Q, targetNetworkId = ts.target.networkID}):send()
+		else
+			CastSpell(_Q, ts.target)
+			end	
+		end
+	end
+end
+if Eready and AkaliMenu.harass.useE then
+	if GetDistance(ts.target, myHero) <= 325 then
+		if ValidTarget(ts.target, 325) then
 			if VIP_USER and AkaliMenu.SS.usepackets then
-				Packet("S_CAST", {spellId = _Q, targetNetworkId = ts.target.networkID}):send()
+					Packet("S_CAST", {spellId = _E}):send()
 			else
-				CastSpell(_Q, ts.target)
-			
+				CastSpell(_E, ts.target)
+				end
 			end
 		end
 	end
@@ -281,72 +298,55 @@ function FullCombo()
 	end
 	
 	if AkaliMenu.combo.useQ and Qready then
-		CastQ()
-	end
-	if AkaliMenu.combo.useE and Eready then
-		CastE()
-	end
-	if AkaliMenu.combo.useR and Rready then
-	if not AkaliMenu.combo.ChaseR then
-		CastR()
-	else if
-	AkaliMenu.combo.ChaseR then
-		ChaseRActivate()
-			end
-		end	
-	end
-end
-
--------------------------------------------
---				Cast Functions			 --
--------------------------------------------
-function ChaseRActivate()
-if GetDistance(ts.target, myHero) >= 450 then
-	if GetDistance(ts.target, myHero) <= 800 then
-		if ValidTarget(ts.target) then
-			if VIP_USER and AkaliMenu.SS.usepackets then
-				Packet("S_CAST", {spellId = _R}):send()
-			else
-				CastSpell(_R, ts.target)
-				end
-			end
-		end
-	end
-end
-
-function CastQ()
-	if GetDistance(ts.target, myHero) <= 600 then
-		if ValidTarget(ts.target, 600) then
-			    if VIP_USER and AkaliMenu.SS.usepackets then
+		if GetDistance(ts.target, myHero) <= 600 then
+			if ValidTarget(ts.target) then
+					if VIP_USER and AkaliMenu.SS.usepackets then
 						Packet("S_CAST", {spellId = _Q, targetNetworkId = ts.target.networkID}):send()
 					else
 						CastSpell(_Q, ts.target)
 					end
 			end
-		end
+	end
 end
 
-function CastE()
+if AkaliMenu.combo.useE and Eready then
 	if GetDistance(ts.target, myHero) <= 325 then
-		if ValidTarget(ts.target, 325) then
+		if ValidTarget(ts.target) then
 			if VIP_USER and AkaliMenu.SS.usepackets then
 				Packet("S_CAST", {spellId = _E}):send()
-				else
-					CastSpell(_E, ts.target)
+			else
+				CastSpell(_E, ts.target)
 			end
 		end
 	end
 end
 
-function CastR()
-if GetDistance(ts.target, myHero) <= 800 then
-			if ValidTarget(ts.target, 800) then
+if AkaliMenu.combo.useR and Rready then
+	if not AkaliMenu.combo.ChaseR then
+		if GetDistance(ts.target, myHero) <= 800 then
+			if ValidTarget(ts.target) then
 				if VIP_USER and AkaliMenu.SS.usepackets then
 					Packet("S_CAST", {spellId = _R, targetNetworkId = ts.target.networkID}):send()
 				else
 					CastSpell(_R, ts.target)
+				end
+			end	
+		end
+	end
+end
+
+if AkaliMenu.combo.ChaseR then
+	if GetDistance(ts.target, myHero) >= 450 then
+		if GetDistance(ts.target, myHero) <= 800 then
+			if ValidTarget(ts.target) then
+				if VIP_USER and AkaliMenu.SS.usepackets then
+					Packet("S_CAST", {spellId = _R}):send()
+				else
+					CastSpell(_R, ts.target)	
+					end
+				end
 			end
-		end	
+		end
 	end
 end
 
@@ -355,7 +355,7 @@ end
 -------------------------------------------
 function OnDraw()
 	if not myHero.dead then
-		if AkaliMenu.drawing.ndraw then
+		if not AkaliMenu.drawing.ndraw then
 			if AkaliMenu.drawing.QRange and Qready then 
 			DrawCircle(myHero.x, myHero.y, myHero.z, qRange, 0x111121)
 		end
@@ -367,6 +367,7 @@ function OnDraw()
 		end
 			if AkaliMenu.drawing.ChasingR and Rready then
 			DrawCircle(myHero.x, myHero.y, myHero.z, 500, 0x111111)
+			end
 		end
 	end
 end
