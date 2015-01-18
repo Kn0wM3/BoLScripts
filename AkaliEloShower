@@ -11,6 +11,7 @@
 			Killsteal using Q,W,E,R,Ignite
 			Supports all AP Items
 			Supports SxOrbwalk,SAC:R,MMA
+			AutoUpdate
 	
 	Features(SOON):
 			Damage Calculations
@@ -48,7 +49,7 @@ end
 if myHero.charName ~= "Akali" then return end
 
 local ts
-local Qready, Wready, Eready, Rready = false
+local Qready, Wready, Eready, Rready, sac, mma = false, false, false, false, false, false
 local Qrange, Erange, Rrange = 600, 325, 800
 
 function OnLoad()
@@ -64,9 +65,9 @@ function OnLoad()
 	lastSkin = 0
 	
 	if myHero:GetSpellData(SUMMONER_1).name:find(Ignite.name) then
-		Ignite.slot = SUMMONER_1 PrintChat ("1")
+		Ignite.slot = SUMMONER_1
 	elseif myHero:GetSpellData(SUMMONER_2).name:find(Ignite.name) then
-		Ignite.slot = SUMMONER_2 PrintChat ("2")
+		Ignite.slot = SUMMONER_2 
 	end
 end
 
@@ -78,8 +79,9 @@ function OnTick()
 	if Config.ks.ks then KillSteal() end
 	if Config.farm.FarmCS then LastHitMode() end
 	if Config.clear.clearCS then LaneClearMode() end
-	--if Config.misc.zhonyas.zhonyas then Zhonyas() end
+	if Config.misc.zhonyas.zhonyas then Zhonyas() end
 end
+
 
 function OnDraw()
 	if not myHero.dead and not Config.draw.mdraw then
@@ -220,12 +222,15 @@ function Checks()
 	Wready = (myHero:CanUseSpell(_W) == READY)
 	Eready = (myHero:CanUseSpell(_E) == READY)
 	Rready = (myHero:CanUseSpell(_R) == READY)
-	
 	Igniteready = (Ignite.slot ~= nil and myHero:CanUseSpell(Ignite.slot) == READY)
 	
 	TargetSelector:update()
 	Target = GetCustomTarget()
 	SxOrb:ForceTarget(Target)
+	
+	if sac or mma then
+		SxOrb.SxOrbMenu.General.Enabled = false
+	end
 	
 	if VIP_USER and Config.draw.lfc.lfc then _G.DrawCircle = DrawCircle2 
 		else _G.DrawCircle = _G.oldDrawCircle end
@@ -264,11 +269,11 @@ function Menu()
 		Config.clear:addParam("useE", "Use E to Clear", SCRIPT_PARAM_ONOFF, true)
 	--if VIP_USER then
 	Config:addSubMenu("Misc Settings", "misc")
-		Config.misc:addParam("skinList", "Choose your skin", SCRIPT_PARAM_LIST,	7, { "Stinger", "Crimson","All-Star", "Nurse", "Silverfang", "Blood Moon", "Classic" })
+		--Config.misc:addParam("skinList", "Choose your skin", SCRIPT_PARAM_LIST,	7, { "Stinger", "Crimson","All-Star", "Nurse", "Silverfang", "Blood Moon", "Classic" })
 	--end	
 		Config.misc:addSubMenu("Zhonyas", "zhonyas")
 		Config.misc.zhonyas:addParam("zhonyas", "Auto Zhonyas", SCRIPT_PARAM_ONOFF, true)
-		Config.misc.zhonyas:addParam("zhonyasunder", "Use Zhonyas under % health", SCRIPT_PARAM_SLICE, 20, 0, 100 ,200)
+		Config.misc.zhonyas:addParam("zhonyasunder", "Use Zhonyas under % health", SCRIPT_PARAM_SLICE, 20, 1, 100 ,200)
 		
 	Config:addSubMenu("Killsteal Settings", "ks")
 		Config.ks:addParam("ks", "Use SmartKS", SCRIPT_PARAM_ONOFF, true)
@@ -295,6 +300,15 @@ function Menu()
 	TargetSelector = TargetSelector(TARGET_LESS_CAST_PRIORITY, Qrange, DAMAGE_MAGIC, true)
 	TargetSelector.name = "Akali"
 	Config:addTS(TargetSelector)
+	
+	if _G.MMA_Loaded then
+		print("<b><font color=\"#FF0000\">Akali Elo Shower:</font></b> <font color=\"#FFFFFF\">MMA Support Loaded.</font>")
+		mma = true
+	end	
+	if _G.AutoCarry then
+		print("<b><font color=\"#FF0000\">Akali Elo Shower:</font></b> <font color=\"#FFFFFF\">SAC Support Loaded.</font>")
+		sac = true
+	end
 
 end
 
