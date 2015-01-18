@@ -28,7 +28,7 @@ require "SxOrbWalk"
 require "VPrediction"
 
 local AUTO_UPDATE = true
-local version = 1.0
+local version = 1.01
 
 
 if AUTO_UPDATE then
