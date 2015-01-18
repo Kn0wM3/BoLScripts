@@ -6,16 +6,21 @@
 	Features:
 			Combo Mode
 			Harass Mode/Toggle
-			W afte R
 			Farming with Spells
 			Lane Clear with spells
 			Killsteal using Q,W,E,R,Ignite
 			Supports all AP Items
-			Support SxOrbwalk,SAC:R,MMA
+			Supports SxOrbwalk,SAC:R,MMA
 	
 	Features(SOON):
 			Damage Calculations
+			SkinHack
+			Packet Casting
+			Auto Update
 			Overall Improvements
+		
+		Known Bugs:
+			Bugsplat at reload
 ]]
 
 require "spellDmg"
@@ -55,7 +60,7 @@ function OnTick()
 	if Config.ks.ks then KillSteal() end
 	if Config.farm.FarmCS then LastHitMode() end
 	if Config.clear.clearCS then LaneClearMode() end
-	if Config.misc.zhonyas.zhonyas then Zhonyas() end
+	--if Config.misc.zhonyas.zhonyas then Zhonyas() end
 end
 
 function OnDraw()
@@ -140,13 +145,7 @@ function CastQ(unit)
 		CastSpell(_Q, unit)
 	end
 end
---[[
-function CastW(unit)
-	if Wready then
-		CastSpell(_W, myHero.x, myHero.z)
-	end
-end
-]]
+
 function CastE(unit)
 	if unit ~= nil and unit.type == myHero.type and GetDistance(unit) <= Erange and Eready then
 		CastSpell(_E, unit)
@@ -333,34 +332,7 @@ function GetCustomTarget()
 	if _G.AutoCarry and _G.AutoCarry.Crosshair and _G.AutoCarry.Attack_Crosshair and _G.AutoCarry.Attack_Crosshair.target and _G.AutoCarry.Attack_Crosshair.target.type == myHero.type then return _G.AutoCarry.Attack_Crosshair.target end
 	return TargetSelector.target
 end
---[[
--- Skin Hack
-function GenModelPacket(networkId, modelName, skinId)
-  local p = CLoLPacket(0x001A)
-    p.vTable = 19025968
-    p:EncodeF(networkId)
-      for c in modelName:gmatch'.' do
-        p:Encode1(string.byte(c))
-      end
-      for i = #modelName, 15 do 
-        p:Encode1(0)
-       end
-    p:Encode4(0)
-    p:Encode4(0)
-    p:Encode4(0xFF) 
-    p:Encode4(skinId)
-    p:Encode4(0)
-    p:Encode1(0)
-    RecvPacket(p)
-end
 
-function ChooseSkin()
-	if Config.Misc.skinList ~= lastSkin then
-		lastSkin = Config.Misc.skinList
-		GenModelPacket(myHero.networkID, myHero.charName, Config.Misc.skinList)
-	end
-end
-]]
 -- Lag Free Circles
 function DrawCircleNextLvl(x, y, z, radius, width, color, chordlength)
   radius = radius or 300
