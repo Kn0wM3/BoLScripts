@@ -12,18 +12,16 @@
 			Supports all AP Items
 			Supports SxOrbwalk,SAC:R,MMA
 			AutoUpdate
-			Damage Calculations
 	
 	Features(SOON):
+			Damage Calculations
 			Improving of Killsteal
 			SkinHack
 			Packet Casting
 			Overall Improvements
 		
 		Known Bugs:
-			None
-			Bugsplat at reload -Fixed
-			
+			Bugsplat at reload
 ]]
 
 require "spellDmg"
@@ -31,7 +29,7 @@ require "SxOrbWalk"
 require "VPrediction"
 
 local AUTO_UPDATE = true
-local version = 1.1
+local version = 1.01
 
 if AUTO_UPDATE then
     local server_version = tonumber(GetWebResult("raw.github.com", "/Kn0wM3/BoLScripts/master/AkaliEloShowerVersion")) -- I have a file on my github which just shows the newest version, what I'm doing here is downloading it and comparing with the constant value above and if there is a newer version then go through the update process
@@ -59,8 +57,6 @@ function OnLoad()
 	
 	enemyMinions = minionManager(MINION_ENEMY, Qrange, myHero, MINION_SORT_MAXHEALTH_DEC)
 	
-	killstring = {}
-	
 	Ignite = { name = "summonerdot", range = 600, slot = nil }
 	Ignite.ready = (Ignite.slot ~= nil and myHero:CanUseSpell(Ignite.slot) == READY)
 	
@@ -84,7 +80,6 @@ function OnTick()
 	if Config.farm.FarmCS then LastHitMode() end
 	if Config.clear.clearCS then LaneClearMode() end
 	if Config.misc.zhonyas.zhonyas then Zhonyas() end
-	if Config.draw.DD then DmgCalc() end
 end
 
 function OnDraw()
@@ -97,12 +92,6 @@ function OnDraw()
 		end
 		if Config.draw.drawR and Rready then
 			DrawCircle(myHero.x, myHero.y, myHero.z, 800, RGB(Config.draw.rColor[2], Config.draw.rColor[3], Config.draw.rColor[4]))
-		for _,enemy in pairs(GetEnemyHeroes()) do
-            if ValidTarget(enemy) and killstring[enemy.networkID] ~= nil then
-                local pos = WorldToScreen(D3DXVECTOR3(enemy.x, enemy.y, enemy.z))
-                DrawText(killstring[enemy.networkID], 20, pos.x - 35, pos.y - 10, 0xFFFFFF00)
-				end
-			end
 		end
 	end
 end
@@ -218,7 +207,7 @@ function KillSteal()
 			elseif enemy.health <= (qDmg + IDMG) and ValidTarget(enemy, Qrange) and Qready and Igniteready then
 				CastQ(enemy)
 				CastSpell(Ignite.slot, enemy)
-			elseif enemy.health <= eDmg and ValidTarget(enemy, Erange) and Eready then
+			elseif enemy.health <= eDmg and ValidTarget(enemy, Qrange) and Eready then
 				CastE(enemy)
 			elseif enemy.health <= (eDmg + rDmg) and ValidTarget(enemy, Rrange) and Rready and Eready and Config.ks.useR then
 				CastR(enemy)
@@ -242,80 +231,6 @@ function KillSteal()
 				CastQ(enemy)
 			end
 			if Config.ks.autoignite then AutoIgnite(enemy) end
-		end
-	end
-end
-
-function DmgCalc()
-	for _,enemy in pairs(GetEnemyHeroes()) do
-        if not enemy.dead and enemy.visible then
-			local ADDMG = getDmg("P", enemy, myHero)
-			local QDMG = getDmg("Q", enemy, myHero, 3)
-			local EDMG = getDmg("E", enemy, myHero)
-			local RDMG = getDmg("R", enemy, myHero)
-			local IDMG = (50 + (20 * myHero.level))
-			local hxgslot = GetInventorySlotItem(3146)
-			local hxgready =(hxgslot ~= nil and myHero:CanUseSpell(hxgslot) == READY)
-			local HXGDMG =((hxgslot and hxgready and getDmg("HXG", enemy, myHero)) or 0)
-			local dfgslot = GetInventorySlotItem(3128)
-			local dfgready = (dfgslot ~= nil and myHero:CanUseSpell(dfgslot) == READY)
-			local DFGDMG = ((dfgslot and dfgready and getDmg("DFG", enemy, myHero)) or 0)
-			if DFGDMG > 0 then
-				QDMG2 = getDmg("Q", enemy, myHero) * 1.2
-				EDMG2 = getDmg("E", enemy, myHero) * 1.2
-				RDMG2 = getDmg("R", enemy, myHero) * 1.2
-			else
-				QDMG2 = 0
-				EDMG2 = 0
-				RDMG2 = 0
-			end
-			if enemy.health > (QDMG + EDMG + RDMG + IDMG + DFGDMG + HXGDMG + ADDMG) or enemy.health > (QDMG2 + EDMG2 + RDMG2 + IDMG+ DFGDMG + HXGDMG + ADDMG) then
-				killstring[enemy.networkID] = "Harass Him!!!"
-			elseif enemy.health < ADDMG then
-				killstring[enemy.networkID] = "AA Kill!"
-			elseif enemy.health < QDMG and (enemy.health > (QDMG + IDMG) or enemy.health > (QDMG2 + DFGDMG)) then
-				killstring[enemy.networkID] = "Q Kill!"
-			elseif enemy.health < (QDMG + IDMG) and (enemy.health > QDMG or enemy.health > (QDMG2 + DFGDMG)) then
-				killstring[enemy.networkID] = "Q+Ignite Kill!"
-			elseif enemy.health < (QDMG2 + DFGDMG) and (enemy.health > (QDMG + IDMG) or enemy.health > QDMG) then
-				killstring[enemy.networkID] = "DFG+Q Kill!"	
-			elseif enemy.health < EDMG and (enemy.health > (EDMG + IDMG) or enemy.health > (WDMG2 + DFGDMG)) then
-				killstring[enemy.networkID] = "E Kill!"
-			elseif enemy.health < (EDMG + IDMG) and (enemy.health > EDMG or enemy.health > (WDMG2 + DFGDMG)) then
-				killstring[enemy.networkID] = "E+Ignite Kill!"	
-			elseif enemy.health < (EDMG2 + DFGDMG) and (enemy.health > (EDMG + IDMG) or enemy.health > EDMG) then
-				killstring[enemy.networkID] = "DFG+E Kill!"
-			elseif enemy.health < RDMG and (enemy.health > (RDMG + IDMG) or enemy.health > (RDMG2 + DFGDMG)) then
-				killstring[enemy.networkID] = "R Kill!"
-			elseif enemy.health < (RDMG + IDMG) and (enemy.health > RDMG or enemy.health > (RDMG2 + DFGDMG)) then
-				killstring[enemy.networkID] = "R+Ignite Kill!"	
-			elseif enemy.health < (RDMG2 + DFGDMG) and (enemy.health > (RDMG + IDMG) or enemy.health > RDMG) then
-				killstring[enemy.networkID] = "DFG+R Kill!"	
-			elseif enemy.health < (QDMG + RDMG) then
-				killstring[enemy.networkID] = "Q+R Kill!"
-			elseif enemy.health < (QDMG + RDMG + IDMG) then
-				killstring[enemy.networkID] = "Q+R+Ignite Kill!"	
-			elseif enemy.health < (QDMG2 + RDMG2 + DFGDMG) then
-				killstring[enemy.networkID] = "DFG+Q+R Kill!"
-			elseif enemy.health < (EDMG + RDMG) then
-				killstring[enemy.networkID] = "E+R Kill!"
-			elseif enemy.health < (EDMG + RDMG + IDMG) then
-				killstring[enemy.networkID] = "E+R+Ignite Kill!"	
-			elseif enemy.health < (EDMG2 + RDMG2 + DFGDMG) then
-				killstring[enemy.networkID] = "DFG+E+R Kill!"	
-			elseif enemy.health < (QDMG + EDMG + RDMG) then
-				killstring[enemy.networkID] = "Q+E+R Kill!"
-			elseif enemy.health < (QDMG + EDMG + RDMG + IDMG) then
-				killstring[enemy.networkID] = "Q+E+R+Ignite Kill!"
-			elseif enemy.health < (QDMG2 + EDMG2 + RDMG2 + DFGDMG + ADDMG) then
-				killstring[enemy.networkID] = "DFG+Q+E+R+AA Kill!"
-			elseif enemy.health < (QDMG2 + EDMG2 + RDMG2 + DFGDMG + IDMG + ADDMG) then
-				killstring[enemy.networkID] = "DFG+Q+E+R+AA+Ignite Kill!"
-			elseif enemy.health < (QDMG2 + EDMG2 + RDMG2 + DFGDMG + HXGDMG + ADDDMG) then
-				killstring[enemy.networkID] = "DFG+HXG+Q+E+R+AA KILL!"
-			elseif enemy.health < (QDMG2 + EDMG2 + RDMG2 + DFGDMG + HXGDMG + IDMG + ADDDMG) then
-				killstring[enemy.networkID] = "DFG+HXG+Q+E+R+AA+Ignite KILL!"
-			end
 		end
 	end
 end
@@ -408,7 +323,6 @@ function Menu()
 		
 	Config:addSubMenu("Draw Setttings", "draw")
 		Config.draw:addParam("mdraw", "Disable all Drawings", SCRIPT_PARAM_ONOFF, false)
-		Config.draw:addParam("DD", "Draw Dmg Text", SCRIPT_PARAM_ONOFF, true)
 		Config.draw:addParam("drawQ", "Draw Q Range", SCRIPT_PARAM_ONOFF, true)
 		Config.draw:addParam("qColor", "Draw (Q) Color", SCRIPT_PARAM_COLOR, {255, 255, 255, 255})
 		Config.draw:addParam("drawE", "Draw E Range", SCRIPT_PARAM_ONOFF, true)
