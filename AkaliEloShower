@@ -26,6 +26,8 @@
 			Bugsplat at reload -Fixed
 ]]
 
+if myHero.charName ~= "Akali" then return end
+
 require "spellDmg"
 require "SxOrbWalk"
 require "VPrediction"
@@ -47,8 +49,6 @@ if AUTO_UPDATE then
 		PrintChat("<font color='#aaff34'>[Akali Elo Shower]Thanks for using Akali Elo Shower, Report bugs on the forum!</font>")
 	end
 end
-
-if myHero.charName ~= "Akali" then return end
 
 local ts
 local Qready, Wready, Eready, Rready, sac, mma = false
