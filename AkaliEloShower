@@ -1,5 +1,5 @@
 --[[
-	Akali Elo Shower by Kn0wM3
+	Akali Elo Shower by Kn0wM3( Auto W if x Enemy in x Range, Auto W if x % Health if x Enemy in x Range, Chase R with x Distance, PacketCasting, New Menu)
 	Hope you enjoy! 
 	Please report bugs on the forum!(http://forum.botoflegends.com/topic/47828-)
 	
@@ -10,7 +10,8 @@
 		Farming with Spells
 		Lane Clear with spells
 		Killsteal using Q,E,R,DFG,Ignite
-		Supports all AP Items
+		Packet Casting of Q,E,R
+		Supports all AP/AD Items
 		Supports SxOrbwalk,SAC:R,MMA
 		AutoUpdate
 		Damage Calculations(95% Credits to kokosik1221, I just optimized it for this Script, thank you for letting me using it, you're awesome:)!)
@@ -18,12 +19,17 @@
 	Features(SOON):
 		Improving of Killsteal
 		SkinHack
-		Packet Casting
 		Overall Improvements
 		
-		Known Bugs:
-			None
-			Bugsplat at reload -Fixed
+	Known Bugs:
+		None
+	
+	Changelog:
+	
+		1.0 -Release
+		1.01 -Fixed a few Bugs
+		1.1 -Fixed Bugs, Improved Killsteal
+		1.2 -DmgCalculations(95% Credits go to kokosik1221, I just optimizied it for this Script)
 ]]
 
 if myHero.charName ~= "Akali" then return end
@@ -51,18 +57,19 @@ if AUTO_UPDATE then
 end
 
 local ts
-local Qready, Wready, Eready, Rready, sac, mma = false
+local Qready, Wready, Eready, Rready = false
 local Qrange, Erange, Rrange = 600, 325, 800
 
 function OnLoad()
 	Menu()
+	
+	Variables()
 	
 	enemyMinions = minionManager(MINION_ENEMY, Qrange, myHero, MINION_SORT_MAXHEALTH_DEC)
 	
 	killstring = {}
 	
 	Ignite = { name = "summonerdot", range = 600, slot = nil }
-	Ignite.ready = (Ignite.slot ~= nil and myHero:CanUseSpell(Ignite.slot) == READY)
 	
 	Target = GetCustomTarget()
 	SxOrb:ForceTarget(Target)
@@ -82,21 +89,22 @@ function OnTick()
 	if Config.harass.harass or Config.harass.harass2 then Harass(Target) end
 	if Config.ks.ks then KillSteal() end
 	if Config.farm.FarmCS then LastHitMode() end
-	if Config.clear.clearCS then LaneClearMode() end
+	if Config.farm.clearCS then LaneClearMode() end
 	if Config.misc.zhonyas.zhonyas then Zhonyas() end
-	if Config.draw.DD then DmgCalc() end
+	if Config.draw.DD and not Config.draw.mdraw then DmgCalc() end
+	if Config.combo.wMenu.useAutoW and Wready then AutoW() end
 end
 
 function OnDraw()
 	if not myHero.dead and not Config.draw.mdraw then
 		if Config.draw.drawQ and Qready then
-			DrawCircle(myHero.x, myHero.y, myHero.z, 600, RGB(Config.draw.qColor[2], Config.draw.qColor[2], Config.draw.qColor[4]))
+			DrawCircle(myHero.x, myHero.y, myHero.z, Qrange, RGB(Config.draw.qColor[2], Config.draw.qColor[2], Config.draw.qColor[4]))
 		end
 		if Config.draw.drawE and Eready then
-			DrawCircle(myHero.x, myHero.y, myHero.z, 325, RGB(Config.draw.eColor[2], Config.draw.eColor[3], Config.draw.eColor[4]))
+			DrawCircle(myHero.x, myHero.y, myHero.z, Erange, RGB(Config.draw.eColor[2], Config.draw.eColor[3], Config.draw.eColor[4]))
 		end
 		if Config.draw.drawR and Rready then
-			DrawCircle(myHero.x, myHero.y, myHero.z, 800, RGB(Config.draw.rColor[2], Config.draw.rColor[3], Config.draw.rColor[4]))
+			DrawCircle(myHero.x, myHero.y, myHero.z, Rrange, RGB(Config.draw.rColor[2], Config.draw.rColor[3], Config.draw.rColor[4]))
 		for _,enemy in pairs(GetEnemyHeroes()) do
             if ValidTarget(enemy) and killstring[enemy.networkID] ~= nil then
                 local pos = WorldToScreen(D3DXVECTOR3(enemy.x, enemy.y, enemy.z))
@@ -107,32 +115,60 @@ function OnDraw()
 	end
 end
 
+function CountEnemyHeroInRange(range)
+	local enemyInRange = 0
+		for i = 1, heroManager.iCount, 1 do
+			local hero = heroManager:getHero(i)
+				if ValidTarget(hero,range) then
+			enemyInRange = enemyInRange + 1
+			end
+		end
+	return enemyInRange
+end 
+
+function AutoW()
+	if Config.combo.wMenu.useAutoW then
+		local wRange = Config.combo.wMenu.wRange 
+		if CountEnemyHeroInRange(wRange) >= Config.combo.wMenu.wCount then
+			CastSpell(_W, myHero.x, myHero.z)
+		elseif myHero.health <= (myHero.maxHealth * Config.combo.wMenu.wHealth / 100) and CountEnemyHeroInRange(wRange) >= Config.combo.wMenu.wCount2 then
+			CastSpell(_W, myHero.x, myHero.z)
+		end
+	end
+end
+
 function Combo(unit)
 	if ValidTarget(unit) and unit ~= nil and unit.type == myHero.type then
 		if Config.combo.useItems then
 			UseItems(unit)
 		end
-		if Config.combo.useR then
-		CastR(unit)
+		if Config.combo.rMenu.useR and Config.combo.rMenu.ChaseR and Config.combo.wMenu.useW and Wready then
+			ChaseR(unit)
+			CastSpell(_W, myHero.x, myHero.z)
+		else 
+			ChaseR(unit)
 		end
-		if Config.combo.useW and Wready then
-		CastSpell(_W, myHero.x, myHero.z)
+		if Config.combo.rMenu.useR and Config.combo.wMenu.useW and Wready then
+			CastR(unit)
+			CastSpell(_W, myHero.x, myHero.z)
+		else 
+			CastR(unit)
 		end
-		if Config.combo.useQ then
-		CastQ(unit)
+		if Config.combo.qMenu.useQ then
+			CastQ(unit)
 		end
-		if Config.combo.useE then
-		CastE(unit)
+		if Config.combo.eMenu.useE then
+			CastE(unit)
 		end
 	end
 end
 
 function Harass(unit)
 	if ValidTarget(unit) and unit ~= nil and unit.type == myHero.type then
-		if Config.harass.useQ then 
+		if Config.harass.qMenu.useQ then 
 		CastQ(unit)
 		end
-		if Config.harass.useE then
+		if Config.harass.eMenu.useE then
 		CastE(unit)
 		end
 	end
@@ -142,10 +178,10 @@ function LastHitMode()
 	enemyMinions:update()
 		for i, minion in pairs(enemyMinions.objects) do
 			if minion ~= nil then
-				if ValidTarget(minion, Qrange) and Config.farm.useQ and Qready and not GetDistance(minion) <= Erange and Eready and getDmg("Q", minion, myHero) >= minion.health then
+				if ValidTarget(minion, Qrange) and Config.farm.qMenu.useQ and Qready and not GetDistance(minion) <= Erange and Eready and getDmg("Q", minion, myHero) >= minion.health then
 					CastSpell(_Q, minion)
 				end
-				if ValidTarget(minion, Erange) and Config.farm.useE and Eready and getDmg("E", minion, myHero) >= minion.health then 
+				if ValidTarget(minion, Erange) and Config.farm.eMenu.useE and Eready and getDmg("E", minion, myHero) >= minion.health then 
 					CastSpell(_E, minion)
 			end
 		end
@@ -156,14 +192,14 @@ function LaneClearMode()
 	enemyMinions:update()
 		for i, minion in pairs(enemyMinions.objects) do
 			if minion ~= nil then
-				if ValidTarget(minion, Qrange) and Config.clear.useQ and Qready and getDmg("Q", minion, myHero) >= minion.health then
+				if ValidTarget(minion, Qrange) and Config.farm.qMenu.useQ2 and Qready and getDmg("Q", minion, myHero) >= minion.health then
 					CastSpell(_Q, minion)
-				elseif ValidTarget(minion, Qrange) and Config.clear.useQ and Qready and getDmg("Q", minion, myHero) < minion.health then
+				elseif getDmg("Q", minion, myHero) < minion.health then
 					CastSpell(_Q, minion)
 				end
-				if ValidTarget(minion, Erange) and Config.clear.useE and Eready and getDmg("E", minion, myHero) >= minion.health then 
+				if ValidTarget(minion, Erange) and Config.farm.eMenu.useE2 and Eready and getDmg("E", minion, myHero) >= minion.health then 
 					CastSpell(_E, minion)
-				elseif ValidTarget(minion, Erange) and Config.clear.useE and Eready and getDmg("E", minion, myHero) < minion.health then 
+				elseif getDmg("E", minion, myHero) < minion.health then 
 					CastSpell(_E, minion)
 			end
 		end
@@ -172,19 +208,41 @@ end
 
 function CastQ(unit)
 	if unit ~= nil and unit.type == myHero.type and GetDistance(unit) <= Qrange and Qready then
+		if VIP_USER and Config.misc.usePackets then
+			Packet("S_CAST", {spellId = _Q, targetNetworkId = unit.networkID}):send()
+		else
 		CastSpell(_Q, unit)
+		end
 	end
 end
 
 function CastE(unit)
 	if unit ~= nil and unit.type == myHero.type and GetDistance(unit) <= Erange and Eready then
+		if VIP_USER and Config.misc.usePackets then
+			Packet("S_CAST", {spellId = _E, targetNetworkId = unit.networkID}):send() 
+		else
 		CastSpell(_E, unit)
+		end
 	end
 end
 
 function CastR(unit)
 	if unit ~= nil and unit.type == myHero.type and GetDistance(unit) <= Rrange and Rready then
+		if VIP_USER and Config.misc.usePackets then
+			Packet("S_CAST", {spellId = _R, targetNetworkId = unit.networkID}):send() 
+		else
 		CastSpell(_R, unit)
+		end
+	end
+end
+
+function ChaseR(unit)
+	if unit ~= nil and unit.type == myHero.type and GetDistance(unit) >= Config.combo.rMenu.chaseRange and Rready then
+		if VIP_USER and Config.misc.usePackets then
+			Packet("S_CAST", {spellId = _R, targetNetworkId = unit.networkID}):send() 
+		else
+		CastSpell(_R, unit)
+		end
 	end
 end
 
@@ -230,12 +288,12 @@ function KillSteal()
 				CastR(enemy)
 			elseif enemy.health <= (rDmg + IDMG) and ValidTarget(enemy, Rrange) and Rready and Igniteready and Config.ks.useR then
 				CastR(enemy)
-				CastSpell(Ignite.slot, enemy)
+				--CastSpell(Ignite.slot, enemy)
 			elseif enemy.health <= (qDmg + eDmg + rDmg + IDMG) and ValidTarget(enemy, Rrange) and Qready and Eready and Rready and Config.ks.useR then
 				CastR(enemy)
 				CastQ(enemy)
 				CastE(enemy)
-				CastSpell(Ignite.slot, enemy)
+				--CastSpell(Ignite.slot, enemy)
 			elseif enemy.health <= (qDmg + eDmg + rDmg) and ValidTarget(enemy, Rrange) and Qready and Eready and Rready and Config.ks.useR then
 				CastR(enemy)
 				CastE(enemy)
@@ -311,9 +369,9 @@ function DmgCalc()
 				killstring[enemy.networkID] = "DFG+Q+E+R+AA Kill!"
 			elseif enemy.health < (QDMG2 + EDMG2 + RDMG2 + DFGDMG + IDMG + ADDMG) then
 				killstring[enemy.networkID] = "DFG+Q+E+R+AA+Ignite Kill!"
-			elseif enemy.health < (QDMG2 + EDMG2 + RDMG2 + DFGDMG + HXGDMG + ADDDMG) then
+			elseif enemy.health < (QDMG2 + EDMG2 + RDMG2 + DFGDMG + HXGDMG + ADDMG) then
 				killstring[enemy.networkID] = "DFG+HXG+Q+E+R+AA KILL!"
-			elseif enemy.health < (QDMG2 + EDMG2 + RDMG2 + DFGDMG + HXGDMG + IDMG + ADDDMG) then
+			elseif enemy.health < (QDMG2 + EDMG2 + RDMG2 + DFGDMG + HXGDMG + IDMG + ADDMG) then
 				killstring[enemy.networkID] = "DFG+HXG+Q+E+R+AA+Ignite KILL!"
 			end
 		end
@@ -332,7 +390,6 @@ function Zhonyas()
 	local zSlot = GetInventorySlotItem(3157)
 		if zSlot ~= nil and myHero:CanUseSpell(zSlot) == READY then
 			local health = myHero.health
-				local mana = myHero.mana
 				local maxHealth = myHero.maxHealth
 				if (health / 100) <= Config.misc.zhonyas.zhonyasunder then
 			CastSpell(zSlot)
@@ -346,15 +403,13 @@ function Checks()
 	Eready = (myHero:CanUseSpell(_E) == READY)
 	Rready = (myHero:CanUseSpell(_R) == READY)
 	
+	Ignite = { name = "summonerdot", range = 600, slot = nil }
 	Igniteready = (Ignite.slot ~= nil and myHero:CanUseSpell(Ignite.slot) == READY)
+	Ignite.ready = (Ignite.slot ~= nil and myHero:CanUseSpell(Ignite.slot) == READY)
 	
 	TargetSelector:update()
 	Target = GetCustomTarget()
 	SxOrb:ForceTarget(Target)
-	
-	if sac or mma then
-		SxOrb.SxOrbMenu.General.Enabled = false
-	end
 	
 	if VIP_USER and Config.draw.lfc.lfc then _G.DrawCircle = DrawCircle2 
 		else _G.DrawCircle = _G.oldDrawCircle end
@@ -367,46 +422,58 @@ function Menu()
 	VP = VPrediction()
 	
 	Config = scriptConfig("Akali Elo Shower", "Akali1") 
-	Config:addSubMenu("Combo Settings", "combo")
+	Config:addSubMenu("[Akali Elo Shower]: Combo Settings", "combo")
 		Config.combo:addParam("combo", "Combo Mode", SCRIPT_PARAM_ONKEYDOWN, false, 32)
 		Config.combo:addParam("combomode", "Combo Mode List", SCRIPT_PARAM_LIST, 1, {"RQWE", "QRWE"})
-		Config.combo:addParam("useQ", "Use Q in Combo", SCRIPT_PARAM_ONOFF, true)
-		Config.combo:addParam("useE", "Use E in Combo", SCRIPT_PARAM_ONOFF, true)
-		Config.combo:addParam("useR", "Use R in Combo", SCRIPT_PARAM_ONOFF, true)
-		Config.combo:addParam("useW", "Use W after ULT", SCRIPT_PARAM_ONOFF, true)
-		Config.combo:addParam("comboItems", "Use Items in Combo", SCRIPT_PARAM_ONOFF, true)
-	
-	Config:addSubMenu("Harass Settings", "harass")
+		Config.combo:addParam("useItems", "Use Items in Combo", SCRIPT_PARAM_ONOFF, true)
+			Config.combo:addSubMenu("Q Settings", "qMenu")
+				Config.combo.qMenu:addParam("useQ", "Use Q in Combo", SCRIPT_PARAM_ONOFF, true)
+			Config.combo:addSubMenu("W Settings", "wMenu")
+				Config.combo.wMenu:addParam("useW", "Use W after ULT", SCRIPT_PARAM_ONOFF, true)
+				Config.combo.wMenu:addParam("useAutoW", "Use Auto W", SCRIPT_PARAM_ONOFF, false)
+				Config.combo.wMenu:addParam("wCount", "Auto W if x Enemies are near", SCRIPT_PARAM_SLICE, 2, 0, 5 ,0) 
+				Config.combo.wMenu:addParam("wRange", "Auto W Range", SCRIPT_PARAM_SLICE, 300, 0, 1200, 0)
+				Config.combo.wMenu:addParam("wHealth", "Auto W if Health is under %", SCRIPT_PARAM_SLICE, 15, 0, 100, 0)
+				Config.combo.wMenu:addParam("wCount2", "Auto LifeSafe W if x Enemies are near", SCRIPT_PARAM_SLICE, 2, 0, 5, 0)
+			Config.combo:addSubMenu("E Settings", "eMenu")
+				Config.combo.eMenu:addParam("useE", "Use E in Combo", SCRIPT_PARAM_ONOFF, true)
+			Config.combo:addSubMenu("R Settings", "rMenu")	
+				Config.combo.rMenu:addParam("useR", "Use R in Combo", SCRIPT_PARAM_ONOFF, true)
+				Config.combo.rMenu:addParam("chaseR", "Use R to Chase", SCRIPT_PARAM_ONOFF, false)
+				Config.combo.rMenu:addParam("chaseRange", "Ult Chase Range", SCRIPT_PARAM_SLICE, 350, 0, 800, 0)
+		
+	Config:addSubMenu("[Akali Elo Shower]: Harass Settings", "harass")
 		Config.harass:addParam("harass", "Harass Mode", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("V"))
 		Config.harass:addParam("harass2", "Harass Toggle Mode", SCRIPT_PARAM_ONKEYTOGGLE, false, GetKey("U"))
-		Config.harass:addParam("useQ", "Use Q to Harass", SCRIPT_PARAM_ONOFF, true)
-		Config.harass:addParam("useE", "Use E to Harass", SCRIPT_PARAM_ONOFF, true)
+			Config.harass:addSubMenu("Q Settings", "qMenu")
+				Config.harass.qMenu:addParam("useQ", "Use Q to Harass", SCRIPT_PARAM_ONOFF, true)
+			Config.harass:addSubMenu("E Settings", "eMenu")
+				Config.harass.eMenu:addParam("useE", "Use E to Harass", SCRIPT_PARAM_ONOFF, true)
 	
-	Config:addSubMenu("Farm Settings", "farm")
+	Config:addSubMenu("[Akali Elo Shower]: Farm Settings", "farm")
 		Config.farm:addParam("FarmCS", "Farm Mode", SCRIPT_PARAM_ONKEYDOWN, false, GetKey("C"))
-		Config.farm:addParam("useQ", "Use Q to Farm", SCRIPT_PARAM_ONOFF, false)
-		Config.farm:addParam("useE", "Use E to Farm", SCRIPT_PARAM_ONOFF, true)
+		Config.farm:addParam("ClearCS", "Lane Clear Mode", SCRIPT_PARAM_ONKEYDOWN, false, GetKey("V"))
+			Config.farm:addSubMenu("Q Settings", "qMenu")
+				Config.farm.qMenu:addParam("useQ", "Use Q to LastHit", SCRIPT_PARAM_ONOFF, false)
+				Config.farm.qMenu:addParam("useQ2", "Use Q to WaveClear", SCRIPT_PARAM_ONOFF, false)
+			Config.farm:addSubMenu("E Settings", "eMenu")
+				Config.farm.eMenu:addParam("useE", "Use E to LastHit", SCRIPT_PARAM_ONOFF, true)
+				Config.farm.eMenu:addParam("useE2", "Use E to WaveClear", SCRIPT_PARAM_ONOFF, true)
+	Config:addSubMenu("[Akali Elo Shower]: Misc Settings", "misc")
+		--Config.misc:addParam("skinList", "Choose your skin", SCRIPT_PARAM_LIST,	7, { "Stinger", "Crimson","All-Star", "Nurse", "Silverfang", "Blood Moon", "Classic" })	
+		--Config.misc:addParam("autolevel", "Auto Level Skills", SCRIPT_PARAM_ONOFF, false)
+		--Config.misc:addParam("autolevel2", "Auto Level Sequence", SCRIPT_PARAM_LIST, 1, { "R>Q>E>W", "R>E>Q>W" })
+		Config.misc:addParam("usePackets", "Use Packets (VIP Only!)", SCRIPT_PARAM_ONOFF, true)
+			Config.misc:addSubMenu("Zhonyas", "zhonyas")
+				Config.misc.zhonyas:addParam("zhonyas", "Auto Zhonyas", SCRIPT_PARAM_ONOFF, true)
+				Config.misc.zhonyas:addParam("zhonyasunder", "Use Zhonyas under % health", SCRIPT_PARAM_SLICE, 20, 0, 100 ,200)
 		
-	Config:addSubMenu("Laneclear Settings", "clear")
-		Config.clear:addParam("clearCS", "Lane Clear Mode", SCRIPT_PARAM_ONKEYDOWN, false, GetKey("V"))
-		Config.clear:addParam("useQ", "Use Q to Clear", SCRIPT_PARAM_ONOFF, false)
-		Config.clear:addParam("useE", "Use E to Clear", SCRIPT_PARAM_ONOFF, true)
-	--if VIP_USER then
-	Config:addSubMenu("Misc Settings", "misc")
-		--Config.misc:addParam("skinList", "Choose your skin", SCRIPT_PARAM_LIST,	7, { "Stinger", "Crimson","All-Star", "Nurse", "Silverfang", "Blood Moon", "Classic" })
-	--end	
-		Config.misc:addParam("autolevel", "Auto Level Skills", SCRIPT_PARAM_ONOFF, false)
-		Config.misc:addParam("autolevel2", "Auto Level Sequence", SCRIPT_PARAM_LIST, 1, { "R>Q>E>W", "R>E>Q>W" })
-		Config.misc:addSubMenu("Zhonyas", "zhonyas")
-		Config.misc.zhonyas:addParam("zhonyas", "Auto Zhonyas", SCRIPT_PARAM_ONOFF, true)
-		Config.misc.zhonyas:addParam("zhonyasunder", "Use Zhonyas under % health", SCRIPT_PARAM_SLICE, 20, 0, 100 ,200)
-		
-	Config:addSubMenu("Killsteal Settings", "ks")
+	Config:addSubMenu("[Akali Elo Shower]: Killsteal Settings", "ks")
 		Config.ks:addParam("ks", "Use SmartKS", SCRIPT_PARAM_ONOFF, true)
 		Config.ks:addParam("useR", "Use R to KS(Risky!)", SCRIPT_PARAM_ONOFF, true)
 		Config.ks:addParam("autoignite", "Auto Ignite to KS", SCRIPT_PARAM_ONOFF, true)
 		
-	Config:addSubMenu("Draw Setttings", "draw")
+	Config:addSubMenu("[Akali Elo Shower]: Draw Setttings", "draw")
 		Config.draw:addParam("mdraw", "Disable all Drawings", SCRIPT_PARAM_ONOFF, false)
 		Config.draw:addParam("DD", "Draw Dmg Text", SCRIPT_PARAM_ONOFF, true)
 		Config.draw:addParam("drawQ", "Draw Q Range", SCRIPT_PARAM_ONOFF, true)
@@ -417,25 +484,16 @@ function Menu()
 		Config.draw:addParam("rColor", "Draw (R) Color", SCRIPT_PARAM_COLOR, {255, 255, 255, 255})
 		--if VIP_USER then
 		Config.draw:addSubMenu("Lag Free Circles", "lfc")	
-			Config.draw.lfc:addParam("lfc", "Lag Free Circles", SCRIPT_PARAM_ONOFF, false)
+			Config.draw.lfc:addParam("lfc", "Lag Free Circles", SCRIPT_PARAM_ONOFF, true)
 			Config.draw.lfc:addParam("CL", "Quality", 4, 75, 75, 2000, 0)
 			Config.draw.lfc:addParam("Width", "Width", 4, 1, 1, 10, 0)
 		--end
-	Config:addSubMenu("Orbwalker", "Orbwalking")
+	Config:addSubMenu("[Akali Elo Shower]: Orbwalker", "Orbwalking")
 		SxOrb:LoadToMenu(Config.Orbwalking)
 		
-	TargetSelector = TargetSelector(TARGET_LESS_CAST_PRIORITY, Qrange, DAMAGE_MAGIC, true)
+	TargetSelector = TargetSelector(TARGET_LESS_CAST_PRIORITY, Rrange, DAMAGE_MAGIC, true)
 	TargetSelector.name = "Akali"
 	Config:addTS(TargetSelector)
-	
-	if _G.MMA_Loaded then
-		print("<b><font color=\"#FF0000\">Akali Elo Shower:</font></b> <font color=\"#FFFFFF\">MMA Support Loaded.</font>")
-		mma = true
-	end	
-	if _G.AutoCarry then
-		print("<b><font color=\"#FF0000\">Akali Elo Shower:</font></b> <font color=\"#FFFFFF\">SAC Support Loaded.</font>")
-		sac = true
-	end
 
 end
 
