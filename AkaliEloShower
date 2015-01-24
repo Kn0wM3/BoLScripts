@@ -1,5 +1,5 @@
 --[[
-	Akali Elo Shower by Kn0wM3( Auto W if x Enemy in x Range, Auto W if x % Health if x Enemy in x Range, Chase R with x Distance, PacketCasting, New Menu)
+	Akali Elo Shower by Kn0wM3
 	Hope you enjoy! 
 	Please report bugs on the forum!(http://forum.botoflegends.com/topic/47828-)
 	
@@ -11,12 +11,15 @@
 		Lane Clear with spells
 		Killsteal using Q,E,R,DFG,Ignite
 		Packet Casting of Q,E,R
+		Chase R Range
+		Auto W if x Enemies are in x Range
+		Auto W if x % Health, if x Enemies are in x Range
 		Supports all AP/AD Items
-		Supports SxOrbwalk,SAC:R,MMA
+		Supports SxOrbWalk,SAC:R,MMA
 		AutoUpdate
 		Damage Calculations(95% Credits to kokosik1221, I just optimized it for this Script, thank you for letting me using it, you're awesome:)!)
 		
-	Features(SOON):
+	To Do(SOON):
 		Improving of Killsteal
 		SkinHack
 		Overall Improvements
@@ -30,16 +33,19 @@
 		1.01 -Fixed a few Bugs
 		1.1 -Fixed Bugs, Improved Killsteal
 		1.2 -DmgCalculations(95% Credits go to kokosik1221, I just optimizied it for this Script)
+		1.3 -Added AutoW(W if x enemies are in x range, LifeSafe W if x enemies are in x range at x Health)
+			-Added PacketCasting of Q,E,R
+			-Reworked Combo, Harass, Farm Menu
+		1.31 -Fixed Zhonyas Bug
 ]]
 
 if myHero.charName ~= "Akali" then return end
 
-require "spellDmg"
 require "SxOrbWalk"
 require "VPrediction"
 
 local AUTO_UPDATE = true
-local version = 1.3
+local version = 1.31
 
 if AUTO_UPDATE then
     local server_version = tonumber(GetWebResult("raw.github.com", "/Kn0wM3/BoLScripts/master/AkaliEloShowerVersion")) -- I have a file on my github which just shows the newest version, what I'm doing here is downloading it and comparing with the constant value above and if there is a newer version then go through the update process
@@ -88,8 +94,8 @@ function OnTick()
 	if Config.combo.combo then Combo(Target) end
 	if Config.harass.harass or Config.harass.harass2 then Harass(Target) end
 	if Config.ks.ks then KillSteal() end
-	if Config.farm.FarmCS then LastHitMode() end
-	if Config.farm.clearCS then LaneClearMode() end
+	if Config.farm.FarmCS or Config.farm.FarmCS2 then LastHitMode() end
+	if Config.farm.clearCS or Config.farm.ClearCS2 then LaneClearMode() end
 	if Config.misc.zhonyas.zhonyas then Zhonyas() end
 	if Config.draw.DD and not Config.draw.mdraw then DmgCalc() end
 	if Config.combo.wMenu.useAutoW and Wready then AutoW() end
@@ -194,12 +200,12 @@ function LaneClearMode()
 			if minion ~= nil then
 				if ValidTarget(minion, Qrange) and Config.farm.qMenu.useQ2 and Qready and getDmg("Q", minion, myHero) >= minion.health then
 					CastSpell(_Q, minion)
-				elseif getDmg("Q", minion, myHero) < minion.health then
+				elseif Config.farm.qMenu.useQ2 and Qready and getDmg("Q", minion, myHero) < minion.health then
 					CastSpell(_Q, minion)
 				end
 				if ValidTarget(minion, Erange) and Config.farm.eMenu.useE2 and Eready and getDmg("E", minion, myHero) >= minion.health then 
 					CastSpell(_E, minion)
-				elseif getDmg("E", minion, myHero) < minion.health then 
+				elseif Config.farm.eMenu.useE2 and Eready and getDmg("E", minion, myHero) < minion.health then 
 					CastSpell(_E, minion)
 			end
 		end
@@ -390,6 +396,7 @@ function Zhonyas()
 	local zSlot = GetInventorySlotItem(3157)
 		if zSlot ~= nil and myHero:CanUseSpell(zSlot) == READY then
 			local health = myHero.health
+				local mana = myHero.mana
 				local maxHealth = myHero.maxHealth
 				if (health / 100) <= Config.misc.zhonyas.zhonyasunder then
 			CastSpell(zSlot)
@@ -451,8 +458,18 @@ function Menu()
 				Config.harass.eMenu:addParam("useE", "Use E to Harass", SCRIPT_PARAM_ONOFF, true)
 	
 	Config:addSubMenu("[Akali Elo Shower]: Farm Settings", "farm")
-		Config.farm:addParam("FarmCS", "Farm Mode", SCRIPT_PARAM_ONKEYDOWN, false, GetKey("C"))
-		Config.farm:addParam("ClearCS", "Lane Clear Mode", SCRIPT_PARAM_ONKEYDOWN, false, GetKey("V"))
+		Config.farm:addParam("toggleFarm", "Toggle Farm Mode(requires reload)", SCRIPT_PARAM_ONOFF, false)
+			if Config.farm.toggleFarm then
+				Config.farm:addParam("FarmCS2", "Farm Mode", SCRIPT_PARAM_ONKEYTOGGLE, false, GetKey("C"))
+			else
+				Config.farm:addParam("FarmCS", "Farm Mode", SCRIPT_PARAM_ONKEYDOWN, false, GetKey("C"))
+			end
+		Config.farm:addParam("toggleClear", "Toggle Clear Mode(requires reload)", SCRIPT_PARAM_ONOFF, false)
+			if Config.farm.toggleClear then
+				Config.farm:addParam("ClearCS2", "Clear Mode", SCRIPT_PARAM_ONKEYTOGGLE, false, GetKey("V"))
+			else
+				Config.farm:addParam("ClearCS", "Lane Clear Mode", SCRIPT_PARAM_ONKEYDOWN, false, GetKey("V"))
+			end
 			Config.farm:addSubMenu("Q Settings", "qMenu")
 				Config.farm.qMenu:addParam("useQ", "Use Q to LastHit", SCRIPT_PARAM_ONOFF, false)
 				Config.farm.qMenu:addParam("useQ2", "Use Q to WaveClear", SCRIPT_PARAM_ONOFF, false)
@@ -463,10 +480,11 @@ function Menu()
 		--Config.misc:addParam("skinList", "Choose your skin", SCRIPT_PARAM_LIST,	7, { "Stinger", "Crimson","All-Star", "Nurse", "Silverfang", "Blood Moon", "Classic" })	
 		--Config.misc:addParam("autolevel", "Auto Level Skills", SCRIPT_PARAM_ONOFF, false)
 		--Config.misc:addParam("autolevel2", "Auto Level Sequence", SCRIPT_PARAM_LIST, 1, { "R>Q>E>W", "R>E>Q>W" })
+		Config.misc:addParam("permaShow", "Activate Perma Show", SCRIPT_PARAM_ONOFF, true)
 		Config.misc:addParam("usePackets", "Use Packets (VIP Only!)", SCRIPT_PARAM_ONOFF, true)
 			Config.misc:addSubMenu("Zhonyas", "zhonyas")
 				Config.misc.zhonyas:addParam("zhonyas", "Auto Zhonyas", SCRIPT_PARAM_ONOFF, true)
-				Config.misc.zhonyas:addParam("zhonyasunder", "Use Zhonyas under % health", SCRIPT_PARAM_SLICE, 20, 0, 100 ,200)
+				Config.misc.zhonyas:addParam("zhonyasunder", "Use Zhonyas under % health", SCRIPT_PARAM_SLICE, 20, 0, 100 ,0)
 		
 	Config:addSubMenu("[Akali Elo Shower]: Killsteal Settings", "ks")
 		Config.ks:addParam("ks", "Use SmartKS", SCRIPT_PARAM_ONOFF, true)
@@ -494,7 +512,13 @@ function Menu()
 	TargetSelector = TargetSelector(TARGET_LESS_CAST_PRIORITY, Rrange, DAMAGE_MAGIC, true)
 	TargetSelector.name = "Akali"
 	Config:addTS(TargetSelector)
-
+	--if Config.misc.permaShow and not Config.farm.FarmCS2 and not Config.farm.FarmCS and not Config.farm.ClearCS2 and not Config.combo.ClearCS then
+	--permaShow("No mode active")
+	if Config.misc.permaShow and Config.farm.FarmCS2 or Config.farmFarmCS then
+	Config.farm:permaShow("FarmCS")
+	elseif Config.misc.permaShow and Config.farm.ClearCS2 or Config.clear.ClearCS then
+	Config.farm:permaShow("ClearCS")
+	end
 end
 
 function Variables()
