@@ -20,9 +20,8 @@
 		Damage Calculations(95% Credits to kokosik1221, I just optimized it for this Script, thank you for letting me using it, you're awesome:)!)
 		
 	To Do(SOON):
-		Improving of DamageCalculations
+		Improving of Killsteal
 		SkinHack
-		AutoLevel
 		Overall Improvements
 		
 	Known Bugs:
@@ -49,7 +48,7 @@ require "SxOrbWalk"
 require "VPrediction"
 
 local AUTO_UPDATE = true
-local version = 1.32
+local version = 1.31
 
 if AUTO_UPDATE then
     local server_version = tonumber(GetWebResult("raw.github.com", "/Kn0wM3/BoLScripts/master/AkaliEloShowerVersion")) -- I have a file on my github which just shows the newest version, what I'm doing here is downloading it and comparing with the constant value above and if there is a newer version then go through the update process
@@ -68,7 +67,7 @@ end
 
 local ts
 local Qready, Wready, Eready, Rready = false
-local Qrange, Erange, Rrange = 600, 325, 800
+local Qrange, Erange, Rrange = 600, 325, 700
 
 function OnLoad()
 	Menu()
@@ -506,7 +505,7 @@ function Menu()
 			Config.combo:addSubMenu("R Settings", "rMenu")	
 				Config.combo.rMenu:addParam("useR", "Use R in Combo", SCRIPT_PARAM_ONOFF, true)
 				Config.combo.rMenu:addParam("chaseR", "Use R to Chase", SCRIPT_PARAM_ONOFF, false)
-				Config.combo.rMenu:addParam("chaseRange", "Ult Chase Range", SCRIPT_PARAM_SLICE, 350, 0, 800, 0)
+				Config.combo.rMenu:addParam("chaseRange", "Ult Chase Range", SCRIPT_PARAM_SLICE, 350, 0, 700, 0)
 		
 	Config:addSubMenu("[Akali Elo Shower]: Harass Settings", "harass")
 		Config.harass:addParam("harass", "Harass Mode", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("V"))
