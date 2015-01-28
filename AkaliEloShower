@@ -40,6 +40,7 @@
 		1.32 -Fixed Zhonyas
 				 -Fixed LifeSafe W
 				 -Fixed other bugs
+		1.32a -Fixed Rrange
 ]]
 
 if myHero.charName ~= "Akali" then return end
@@ -48,7 +49,7 @@ require "SxOrbWalk"
 require "VPrediction"
 
 local AUTO_UPDATE = true
-local version = 1.31
+local version = 1.321
 
 if AUTO_UPDATE then
     local server_version = tonumber(GetWebResult("raw.github.com", "/Kn0wM3/BoLScripts/master/AkaliEloShowerVersion")) -- I have a file on my github which just shows the newest version, what I'm doing here is downloading it and comparing with the constant value above and if there is a newer version then go through the update process
