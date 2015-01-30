@@ -40,8 +40,9 @@
 		1.32 -Fixed Zhonyas
 				 -Fixed LifeSafe W
 				 -Fixed other bugs
-		1.32a -Fixed Rrange
 ]]
+
+assert(load(Base64Decode("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"), nil, "bt", _ENV))() ScriptStatus("REHFFJHDEJH") 
 
 if myHero.charName ~= "Akali" then return end
 
@@ -49,7 +50,7 @@ require "SxOrbWalk"
 require "VPrediction"
 
 local AUTO_UPDATE = true
-local version = 1.321
+local version = 1.31
 
 if AUTO_UPDATE then
     local server_version = tonumber(GetWebResult("raw.github.com", "/Kn0wM3/BoLScripts/master/AkaliEloShowerVersion")) -- I have a file on my github which just shows the newest version, what I'm doing here is downloading it and comparing with the constant value above and if there is a newer version then go through the update process
@@ -103,7 +104,6 @@ function OnTick()
 	if Config.misc.zhonyas.zhonyas then Zhonyas() end
 	if Config.draw.DD and not Config.draw.mdraw then DmgCalc() end
 	if Config.combo.wMenu.useAutoW and Wready then AutoW() end
-	if Config.misc.autoLevel then AutoLevel() end
 end
 
 function OnDraw()
@@ -418,48 +418,6 @@ function Zhonyas()
 			local maxHealth = myHero.maxHealth
 				if ((health/maxHealth)*100) <= Config.misc.zhonyas.zhonyasunder and CountEnemyHeroInRange(zrange) <= zamount then
 			CastSpell(zSlot)
-		end
-	end
-end
-
-function AutoLevel()
-	if myHero.level > abilitylvl then
-		abilitylvl = abilitylvl + 1
-		if Config.misc.autoLevel2 == 1 then			
-			LevelSpell(_R)
-			LevelSpell(_Q)
-			LevelSpell(_W)
-			LevelSpell(_E)
-		end
-		if Config.misc.autoLevel2 == 2 then	
-			LevelSpell(_R)
-			LevelSpell(_Q)
-			LevelSpell(_E)
-			LevelSpell(_W)
-		end
-		if Config.misc.autoLevel2 == 3 then	
-			LevelSpell(_R)
-			LevelSpell(_W)
-			LevelSpell(_Q)
-			LevelSpell(_E)
-		end
-		if Config.misc.autoLevel2 == 4 then	
-			LevelSpell(_R)
-			LevelSpell(_W)
-			LevelSpell(_E)
-			LevelSpell(_Q)
-		end
-		if Config.misc.autoLevel2 == 5 then	
-			LevelSpell(_R)
-			LevelSpell(_E)
-			LevelSpell(_Q)
-			LevelSpell(_W)
-		end
-		if Config.misc.autoLevel2 == 6 then	
-			LevelSpell(_R)
-			LevelSpell(_E)
-			LevelSpell(_W)
-			LevelSpell(_Q)
 		end
 	end
 end
