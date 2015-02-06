@@ -40,8 +40,7 @@ require "VPrediction"
 _G.AUTOUPDATE = true
 _G.USESKINHACK = false
 
-
-local version = "1.01"
+local version = "1.02"
 local UPDATE_HOST = "raw.github.com"
 local UPDATE_PATH = "/Kn0wM3/BoLScripts/blob/master/Ryze the Dark Mage.lua".."?rand="..math.random(1,10000)
 local UPDATE_FILE_PATH = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
@@ -67,7 +66,7 @@ end
 
 local ts
 local Qready, Wready, Eready, Rready = false
-local Qrange, Wrange, Erange = 625, 600, 325
+local Qrange, Wrange, Erange = 625, 600, 550
 
 local KillText = {}
 local KillTextColor = ARGB(250, 255, 38, 1)
