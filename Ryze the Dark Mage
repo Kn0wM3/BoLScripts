@@ -27,6 +27,7 @@
 	Changelog
 	
 		1.0 -Release
+		1.01 -Added Scripter Panel
 --]]
 
 if myHero.charName ~= "Ryze" then return end
@@ -37,7 +38,7 @@ require "SxOrbWalk"
 require "VPrediction" 
 
 local AUTO_UPDATE = true
-local version = 1.0
+local version = 1.01
 
 if AUTO_UPDATE then
     local server_version = tonumber(GetWebResult("raw.github.com", "/Kn0wM3/BoLScripts/blob/master/Ryze the Dark Mage Version")) -- I have a file on my github which just shows the newest version, what I'm doing here is downloading it and comparing with the constant value above and if there is a newer version then go through the update process
