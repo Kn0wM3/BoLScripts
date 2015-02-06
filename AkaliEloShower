@@ -664,12 +664,12 @@ function OnProcessSpell(unit, spell)
 			if unit and unit.team ~= myHero.team and unit.type == myHero.type and spell then
 				if spell.name == x.spellName and Config.misc.ES2[x.spellName] and ValidTarget(unit, Wrange) then
 					if spell.target and spell.target.isMe then
-						CastW(unit)
+						CastSpell(_W, myHero.x, myHero.z)
 					elseif not spell.target then
 						local endPos1 = Vector(unit.visionPos) + 300 * (Vector(spell.endPos) - Vector(unit.visionPos)):normalized()
 						local endPos2 = Vector(unit.visionPos) + 100 * (Vector(spell.endPos) - Vector(unit.visionPos)):normalized()
 						if (GetDistanceSqr(myHero.visionPos, unit.visionPos) > GetDistanceSqr(myHero.visionPos, endPos1) or GetDistanceSqr(myHero.visionPos, unit.visionPos) > GetDistanceSqr(myHero.visionPos, endPos2))  then
-							CastW(unit)
+							CastSpell(_W, myHero.x, myHero.z)
 						end
 					end
 				end
