@@ -38,7 +38,7 @@ require "SxOrbWalk"
 require "VPrediction" 
 
 local AUTO_UPDATE = true
-local version = 1.011
+local version = 1.02
 
 if AUTO_UPDATE then
     local server_version = tonumber(GetWebResult("raw.github.com", "/Kn0wM3/BoLScripts/master/Ryze the Dark Mage Version")) -- I have a file on my github which just shows the newest version, what I'm doing here is downloading it and comparing with the constant value above and if there is a newer version then go through the update process
