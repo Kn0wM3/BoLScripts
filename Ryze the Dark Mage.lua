@@ -37,21 +37,31 @@ assert(load(Base64Decode("G0x1YVIAAQQEBAgAGZMNChoKAAAAAAAAAAAAAQIKAAAABgBAAEFAAA
 require "SxOrbWalk"
 require "VPrediction" 
 
-local AUTO_UPDATE = true
-local version = 1.02
+_G.AUTOUPDATE = true
+_G.USESKINHACK = false
 
-if AUTO_UPDATE then
-    local server_version = tonumber(GetWebResult("raw.github.com", "/Kn0wM3/BoLScripts/master/Ryze the Dark Mage Version")) -- I have a file on my github which just shows the newest version, what I'm doing here is downloading it and comparing with the constant value above and if there is a newer version then go through the update process
-    if server_version > version then 
-        PrintChat("Script is outdated. Updating to version: " .. server_version .. "...")
-        DownloadFile("https://raw.githubusercontent.com/Kn0wM3/BoLScripts/master/Ryze%20the%20Dark%20Mage", SCRIPT_PATH .. "Ryze the Dark Mage.lua", function() -- Download the new script (we're overwriting the current one)
-            PrintChat("Script updated. Please reload (Double F9).")
-        end)
-    end
-    if server_version > version then return end -- Quit out the script as it will cause issues
-		if server_version == version then
-		PrintChat("<font color='#aaff34'>[Ryze the Dark Mage]Already newest Version!</font>")
-		PrintChat("<font color='#aaff34'>[Ryze the Dark Mage]Thanks for using Ryze the Dark Mage, Report bugs on the forum!</font>")
+
+local version = "1.01"
+local UPDATE_HOST = "raw.github.com"
+local UPDATE_PATH = "/Kn0wM3/BoLScripts/blob/master/Ryze the Dark Mage.lua".."?rand="..math.random(1,10000)
+local UPDATE_FILE_PATH = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
+local UPDATE_URL = "https://"..UPDATE_HOST..UPDATE_PATH
+function AutoupdaterMsg(msg) print("<font color=\"#FF0000\"><b>AnnieMaster:</b></font> <font color=\"#FFFFFF\">"..msg..".</font>") end
+if _G.AUTOUPDATE then
+	local ServerData = GetWebResult(UPDATE_HOST, "/Kn0wM3/BoLScripts/blob/master/Ryze the Dark Mage.Version")
+	if ServerData then
+		ServerVersion = type(tonumber(ServerData)) == "number" and tonumber(ServerData) or nil
+		if ServerVersion then
+			if tonumber(version) < ServerVersion then
+				AutoupdaterMsg("New version available "..ServerVersion)
+				AutoupdaterMsg("Updating, please don't press F9")
+				DelayAction(function() DownloadFile(UPDATE_URL, UPDATE_FILE_PATH, function () AutoupdaterMsg("Successfully updated. ("..version.." => "..ServerVersion.."), press F9 twice to load the updated version.") end) end, 3)
+			else
+				AutoupdaterMsg("You have got the latest version ("..ServerVersion..")")
+			end
+		end
+	else
+		AutoupdaterMsg("Error downloading version info")
 	end
 end
 
