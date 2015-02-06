@@ -9,7 +9,7 @@
 		Harass Mode/Toggle
 		Farming with Spells
 		Lane Clear with spells
-		Killsteal using Q,E,R,DFG,Ignite
+		Killsteal using Q,E,R,Ignite
 		Packet Casting of Q,E,R
 		Chase R Range
 		Auto W if x Enemies are in x Range
@@ -17,7 +17,7 @@
 		Supports all AP/AD Items
 		Supports SxOrbWalk,SAC:R,MMA
 		AutoUpdate
-		Damage Calculations(95% Credits to kokosik1221, I just optimized it for this Script, thank you for letting me using it, you're awesome:)!)
+		Damage Calculations
 		
 	To Do(SOON):
 		Improving of Killsteal
@@ -40,8 +40,8 @@
 		1.32 -Fixed Zhonyas
 				 -Fixed LifeSafe W
 				 -Fixed other bugs
-		1.321 -Fixed R Range
-		1.4 -Added Scripter Panel for stats
+		1.4 -Scripter Panel
+		1.5 -New DamageCalculations
 ]]
 
 assert(load(Base64Decode("G0x1YVIAAQQEBAgAGZMNChoKAAAAAAAAAAAAAQIKAAAABgBAAEFAAAAdQAABBkBAAGUAAAAKQACBBkBAAGVAAAAKQICBHwCAAAQAAAAEBgAAAGNsYXNzAAQNAAAAU2NyaXB0U3RhdHVzAAQHAAAAX19pbml0AAQLAAAAU2VuZFVwZGF0ZQACAAAAAgAAAAgAAAACAAotAAAAhkBAAMaAQAAGwUAABwFBAkFBAQAdgQABRsFAAEcBwQKBgQEAXYEAAYbBQACHAUEDwcEBAJ2BAAHGwUAAxwHBAwECAgDdgQABBsJAAAcCQQRBQgIAHYIAARYBAgLdAAABnYAAAAqAAIAKQACFhgBDAMHAAgCdgAABCoCAhQqAw4aGAEQAx8BCAMfAwwHdAIAAnYAAAAqAgIeMQEQAAYEEAJ1AgAGGwEQA5QAAAJ1AAAEfAIAAFAAAAAQFAAAAaHdpZAAEDQAAAEJhc2U2NEVuY29kZQAECQAAAHRvc3RyaW5nAAQDAAAAb3MABAcAAABnZXRlbnYABBUAAABQUk9DRVNTT1JfSURFTlRJRklFUgAECQAAAFVTRVJOQU1FAAQNAAAAQ09NUFVURVJOQU1FAAQQAAAAUFJPQ0VTU09SX0xFVkVMAAQTAAAAUFJPQ0VTU09SX1JFVklTSU9OAAQEAAAAS2V5AAQHAAAAc29ja2V0AAQIAAAAcmVxdWlyZQAECgAAAGdhbWVTdGF0ZQAABAQAAAB0Y3AABAcAAABhc3NlcnQABAsAAABTZW5kVXBkYXRlAAMAAAAAAADwPwQUAAAAQWRkQnVnc3BsYXRDYWxsYmFjawABAAAACAAAAAgAAAAAAAMFAAAABQAAAAwAQACBQAAAHUCAAR8AgAACAAAABAsAAABTZW5kVXBkYXRlAAMAAAAAAAAAQAAAAAABAAAAAQAQAAAAQG9iZnVzY2F0ZWQubHVhAAUAAAAIAAAACAAAAAgAAAAIAAAACAAAAAAAAAABAAAABQAAAHNlbGYAAQAAAAAAEAAAAEBvYmZ1c2NhdGVkLmx1YQAtAAAAAwAAAAMAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAUAAAAFAAAABQAAAAUAAAAFAAAABQAAAAUAAAAFAAAABgAAAAYAAAAGAAAABgAAAAUAAAADAAAAAwAAAAYAAAAGAAAABgAAAAYAAAAGAAAABgAAAAYAAAAHAAAABwAAAAcAAAAHAAAABwAAAAcAAAAHAAAABwAAAAcAAAAIAAAACAAAAAgAAAAIAAAAAgAAAAUAAABzZWxmAAAAAAAtAAAAAgAAAGEAAAAAAC0AAAABAAAABQAAAF9FTlYACQAAAA4AAAACAA0XAAAAhwBAAIxAQAEBgQAAQcEAAJ1AAAKHAEAAjABBAQFBAQBHgUEAgcEBAMcBQgABwgEAQAKAAIHCAQDGQkIAx4LCBQHDAgAWAQMCnUCAAYcAQACMAEMBnUAAAR8AgAANAAAABAQAAAB0Y3AABAgAAABjb25uZWN0AAQRAAAAc2NyaXB0c3RhdHVzLm5ldAADAAAAAAAAVEAEBQAAAHNlbmQABAsAAABHRVQgL3N5bmMtAAQEAAAAS2V5AAQCAAAALQAEBQAAAGh3aWQABAcAAABteUhlcm8ABAkAAABjaGFyTmFtZQAEJgAAACBIVFRQLzEuMA0KSG9zdDogc2NyaXB0c3RhdHVzLm5ldA0KDQoABAYAAABjbG9zZQAAAAAAAQAAAAAAEAAAAEBvYmZ1c2NhdGVkLmx1YQAXAAAACgAAAAoAAAAKAAAACgAAAAoAAAALAAAACwAAAAsAAAALAAAADAAAAAwAAAANAAAADQAAAA0AAAAOAAAADgAAAA4AAAAOAAAACwAAAA4AAAAOAAAADgAAAA4AAAACAAAABQAAAHNlbGYAAAAAABcAAAACAAAAYQAAAAAAFwAAAAEAAAAFAAAAX0VOVgABAAAAAQAQAAAAQG9iZnVzY2F0ZWQubHVhAAoAAAABAAAAAQAAAAEAAAACAAAACAAAAAIAAAAJAAAADgAAAAkAAAAOAAAAAAAAAAEAAAAFAAAAX0VOVgA="), nil, "bt", _ENV))() ScriptStatus("REHFFJHDEJH") 
@@ -52,7 +52,7 @@ require "SxOrbWalk"
 require "VPrediction"
 
 local AUTO_UPDATE = true
-local version = 1.4
+local version = 1.5
 
 if AUTO_UPDATE then
     local server_version = tonumber(GetWebResult("raw.github.com", "/Kn0wM3/BoLScripts/master/AkaliEloShowerVersion")) -- I have a file on my github which just shows the newest version, what I'm doing here is downloading it and comparing with the constant value above and if there is a newer version then go through the update process
@@ -72,6 +72,21 @@ end
 local ts
 local Qready, Wready, Eready, Rready = false
 local Qrange, Erange, Rrange = 600, 325, 700
+
+local KillText = {}
+local KillTextColor = ARGB(250, 255, 38, 1)
+local KillTextList = {		
+						"Harass Him!", 					-- 01
+						"Wait for your CD's!",					-- 02
+						"Kill! - AA", 							-- 03
+						"Kill! - Ignite",						-- 04
+						"Kill! - (Q)",							-- 05 
+						"Kill! - (R)",							-- 06
+						"Kill! - (E)",							-- 07
+						"Kill! - (Q)+(R)",						-- 08
+						"Kill! - (Q)+(E)",						-- 09
+						"Kill! - (E)+(R)",						-- 10
+						"Kill! - (Q)+(R)+(E)"					-- 11
 
 function OnLoad()
 	Menu()
@@ -118,10 +133,15 @@ function OnDraw()
 		end
 		if Config.draw.drawR and Rready then
 			DrawCircle(myHero.x, myHero.y, myHero.z, Rrange, RGB(Config.draw.rColor[2], Config.draw.rColor[3], Config.draw.rColor[4]))
-		for _,enemy in pairs(GetEnemyHeroes()) do
-            if ValidTarget(enemy) and killstring[enemy.networkID] ~= nil then
-                local pos = WorldToScreen(D3DXVECTOR3(enemy.x, enemy.y, enemy.z))
-                DrawText(killstring[enemy.networkID], 20, pos.x - 35, pos.y - 10, 0xFFFFFF00)
+		end
+		if Config.draw.drawDD then
+			for i = 1, heroManager.iCount do
+				local enemy = heroManager:GetHero(i)
+				if ValidTarget(enemy) and enemy ~= nil then
+					local barPos = WorldToScreen(D3DXVECTOR3(enemy.x, enemy.y, enemy.z))
+					local PosX = barPos.x - 60
+					local PosY = barPos.y - 10
+					DrawText(KillTextList[KillText[i]], 20, PosX, PosY, KillTextColor)
 				end
 			end
 		end
@@ -137,18 +157,7 @@ function CountEnemyHeroInRange(range)
 			end
 		end
 	return enemyInRange
-end 
-
--- function AutoW()
-	-- if Config.combo.wMenu.useAutoW then
-		-- local wRange = Config.combo.wMenu.wRange 
-		-- if CountEnemyHeroInRange(wRange) >= Config.combo.wMenu.wCount then
-			-- CastSpell(_W, myHero.x, myHero.z)
-		-- elseif myHero.health <= (myHero.maxHealth * Config.combo.wMenu.wHealth / 100) and CountEnemyHeroInRange(wRange) >= Config.combo.wMenu.wCount2 then
-			-- CastSpell(_W, myHero.x, myHero.z)
-		-- end
-	-- end
--- end
+end
 
 function AutoW()
 	local wRange = Config.combo.wMenu.wRange
@@ -330,74 +339,70 @@ function KillSteal()
 end
 
 function DmgCalc()
-	for _,enemy in pairs(GetEnemyHeroes()) do
-        if not enemy.dead and enemy.visible then
-			local ADDMG = getDmg("P", enemy, myHero)
-			local QDMG = getDmg("Q", enemy, myHero, 3)
-			local EDMG = getDmg("E", enemy, myHero)
-			local RDMG = getDmg("R", enemy, myHero)
-			local IDMG = (50 + (20 * myHero.level))
-			local hxgslot = GetInventorySlotItem(3146)
-			local hxgready =(hxgslot ~= nil and myHero:CanUseSpell(hxgslot) == READY)
-			local HXGDMG =((hxgslot and hxgready and getDmg("HXG", enemy, myHero)) or 0)
-			local dfgslot = GetInventorySlotItem(3128)
-			local dfgready = (dfgslot ~= nil and myHero:CanUseSpell(dfgslot) == READY)
-			local DFGDMG = ((dfgslot and dfgready and getDmg("DFG", enemy, myHero)) or 0)
-			if DFGDMG > 0 then
-				QDMG2 = getDmg("Q", enemy, myHero) * 1.2
-				EDMG2 = getDmg("E", enemy, myHero) * 1.2
-				RDMG2 = getDmg("R", enemy, myHero) * 1.2
-			else
-				QDMG2 = 0
-				EDMG2 = 0
-				RDMG2 = 0
-			end
-			if enemy.health > (QDMG + EDMG + RDMG + IDMG + DFGDMG + HXGDMG + ADDMG) or enemy.health > (QDMG2 + EDMG2 + RDMG2 + IDMG+ DFGDMG + HXGDMG + ADDMG) then
-				killstring[enemy.networkID] = "Harass Him!!!"
-			elseif enemy.health < ADDMG then
-				killstring[enemy.networkID] = "AA Kill!"
-			elseif enemy.health < QDMG and (enemy.health > (QDMG + IDMG) or enemy.health > (QDMG2 + DFGDMG)) then
-				killstring[enemy.networkID] = "Q Kill!"
-			elseif enemy.health < (QDMG + IDMG) and (enemy.health > QDMG or enemy.health > (QDMG2 + DFGDMG)) then
-				killstring[enemy.networkID] = "Q+Ignite Kill!"
-			elseif enemy.health < (QDMG2 + DFGDMG) and (enemy.health > (QDMG + IDMG) or enemy.health > QDMG) then
-				killstring[enemy.networkID] = "DFG+Q Kill!"	
-			elseif enemy.health < EDMG and (enemy.health > (EDMG + IDMG) or enemy.health > (WDMG2 + DFGDMG)) then
-				killstring[enemy.networkID] = "E Kill!"
-			elseif enemy.health < (EDMG + IDMG) and (enemy.health > EDMG or enemy.health > (WDMG2 + DFGDMG)) then
-				killstring[enemy.networkID] = "E+Ignite Kill!"	
-			elseif enemy.health < (EDMG2 + DFGDMG) and (enemy.health > (EDMG + IDMG) or enemy.health > EDMG) then
-				killstring[enemy.networkID] = "DFG+E Kill!"
-			elseif enemy.health < RDMG and (enemy.health > (RDMG + IDMG) or enemy.health > (RDMG2 + DFGDMG)) then
-				killstring[enemy.networkID] = "R Kill!"
-			elseif enemy.health < (RDMG + IDMG) and (enemy.health > RDMG or enemy.health > (RDMG2 + DFGDMG)) then
-				killstring[enemy.networkID] = "R+Ignite Kill!"	
-			elseif enemy.health < (RDMG2 + DFGDMG) and (enemy.health > (RDMG + IDMG) or enemy.health > RDMG) then
-				killstring[enemy.networkID] = "DFG+R Kill!"	
-			elseif enemy.health < (QDMG + RDMG) then
-				killstring[enemy.networkID] = "Q+R Kill!"
-			elseif enemy.health < (QDMG + RDMG + IDMG) then
-				killstring[enemy.networkID] = "Q+R+Ignite Kill!"	
-			elseif enemy.health < (QDMG2 + RDMG2 + DFGDMG) then
-				killstring[enemy.networkID] = "DFG+Q+R Kill!"
-			elseif enemy.health < (EDMG + RDMG) then
-				killstring[enemy.networkID] = "E+R Kill!"
-			elseif enemy.health < (EDMG + RDMG + IDMG) then
-				killstring[enemy.networkID] = "E+R+Ignite Kill!"	
-			elseif enemy.health < (EDMG2 + RDMG2 + DFGDMG) then
-				killstring[enemy.networkID] = "DFG+E+R Kill!"	
-			elseif enemy.health < (QDMG + EDMG + RDMG) then
-				killstring[enemy.networkID] = "Q+E+R Kill!"
-			elseif enemy.health < (QDMG + EDMG + RDMG + IDMG) then
-				killstring[enemy.networkID] = "Q+E+R+Ignite Kill!"
-			elseif enemy.health < (QDMG2 + EDMG2 + RDMG2 + DFGDMG + ADDMG) then
-				killstring[enemy.networkID] = "DFG+Q+E+R+AA Kill!"
-			elseif enemy.health < (QDMG2 + EDMG2 + RDMG2 + DFGDMG + IDMG + ADDMG) then
-				killstring[enemy.networkID] = "DFG+Q+E+R+AA+Ignite Kill!"
-			elseif enemy.health < (QDMG2 + EDMG2 + RDMG2 + DFGDMG + HXGDMG + ADDMG) then
-				killstring[enemy.networkID] = "DFG+HXG+Q+E+R+AA KILL!"
-			elseif enemy.health < (QDMG2 + EDMG2 + RDMG2 + DFGDMG + HXGDMG + IDMG + ADDMG) then
-				killstring[enemy.networkID] = "DFG+HXG+Q+E+R+AA+Ignite KILL!"
+	for i=1, heroManager.iCount do
+		local enemy = heroManager:GetHero(i)
+			if ValidTarget(enemy) and enemy ~= nil then
+				aaDmg 		= ((getDmg("AD", enemy, myHero)))
+				qDmg 		= ((getDmg("Q", enemy, myHero)) or 0)	
+				rDmg		= ((getDmg("R", enemy, myHero)) or 0)	
+				eDmg		= ((getDmg("E", enemy, myHero)) or 0)	
+				iDmg 		= ((ignite and getDmg("IGNITE", enemy, myHero)) or 0)	-- Ignite
+	-- Set Kill Text --	
+					-- "Kill! - AA" --
+					if enemy.health <= aaDmg
+						then
+							KillText[i] = 3
+							end
+					-- "Kill! - Ignite" --
+					if enemy.health <= iDmg
+						then
+							 if IREADY then KillText[i] = 4
+							 else KillText[i] = 2
+							 end
+					-- "Kill! - (Q)" --
+					elseif enemy.health <= qDmg
+						then
+							if Qready then KillText[i] = 5
+							else KillText[i] = 2
+							end
+					--	"Kill! - (R)" --
+					elseif enemy.health <= rDmg
+						then
+							if Wready then KillText[i] = 6
+							else KillText[i] = 2
+							end
+					-- "Kill! - (E)" --
+					elseif enemy.health <= eDmg
+						then
+							if Eready then KillText[i] = 7
+							else KillText[i] = 2
+							end
+					-- "Kill! - (Q)+(R)" --
+					elseif enemy.health <= (qDmg+rDmg)
+						then
+							if Qready and Wready then KillText[i] = 8
+							else KillText[i] = 2
+							end
+					-- "Kill! - (Q)+(E)" --
+					elseif enemy.health <= (qDmg+eDmg)
+						then
+							if Qready and Eready then KillText[i] = 9
+							else KillText[i] = 2
+							end
+					-- "Kill! - (R)+(E)" --
+					elseif enemy.health <= (rDmg+eDmg)
+						then
+							if Wready and Eready then KillText[i] = 10
+							else KillText[i] = 2
+							end
+					-- "Kill! - (Q)+(R)+(E)" --
+					elseif enemy.health <= (qDmg+rDmg+eDmg)
+						then
+							if Qready and Wready and Eready then KillText[i] = 11
+							else KillText[i] = 2
+							end
+					-- "Harass your enemy!" -- 
+					else KillText[i] = 1				
 			end
 		end
 	end
