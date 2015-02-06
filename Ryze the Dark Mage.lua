@@ -269,7 +269,7 @@ function LaneClearMode()
 					CastSpell(_E, minion)
 			end
 		end
-			if minion ~= nil and ValidTarget(minion, Wrange) and Config.farm.wMenu.useW2 and not Config.farm.wMenu.safeW and Wready and not getDmg("AD", minion, myHero) >= minion.health then
+			if minion ~= nil and ValidTarget(minion, Wrange) and Config.farm.wMenu.useW2 and not Config.farm.wMenu.safeW and Wready and getDmg("AD", minion, myHero) < minion.health then
 				if getDmg("W", minion, myHero) >= minion.health then
 					CastSpell(_W, minion)
 				elseif getDmg("W", minion, myHero) < minion.health then
