@@ -38,10 +38,10 @@ require "SxOrbWalk"
 require "VPrediction" 
 
 local AUTO_UPDATE = true
-local version = 1.01
+local version = 1.011
 
 if AUTO_UPDATE then
-    local server_version = tonumber(GetWebResult("raw.github.com", "/Kn0wM3/BoLScripts/blob/master/Ryze the Dark Mage Version")) -- I have a file on my github which just shows the newest version, what I'm doing here is downloading it and comparing with the constant value above and if there is a newer version then go through the update process
+    local server_version = tonumber(GetWebResult("raw.github.com", "/Kn0wM3/BoLScripts/master/Ryze the Dark Mage Version")) -- I have a file on my github which just shows the newest version, what I'm doing here is downloading it and comparing with the constant value above and if there is a newer version then go through the update process
     if server_version > version then 
         PrintChat("Script is outdated. Updating to version: " .. server_version .. "...")
         DownloadFile("https://raw.githubusercontent.com/Kn0wM3/BoLScripts/master/Ryze%20the%20Dark%20Mage", SCRIPT_PATH .. "Ryze the Dark Mage.lua", function() -- Download the new script (we're overwriting the current one)
