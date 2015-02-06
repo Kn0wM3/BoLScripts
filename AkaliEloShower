@@ -11,16 +11,16 @@
 		Lane Clear with spells
 		Killsteal using Q,E,R,Ignite
 		Packet Casting of Q,E,R
+		Auto GapCloser W
 		Chase R Range
 		Auto W if x Enemies are in x Range
 		Auto W if x % Health, if x Enemies are in x Range
-		Supports all AP/AD Items
+		Supports all AP Items
 		Supports SxOrbWalk,SAC:R,MMA
 		AutoUpdate
 		Damage Calculations
 		
 	To Do(SOON):
-		Improving of Killsteal
 		SkinHack
 		Overall Improvements
 		
@@ -42,6 +42,7 @@
 				 -Fixed other bugs
 		1.4 -Scripter Panel
 		1.5 -New DamageCalculations
+			-Auto W GapCloser
 ]]
 
 assert(load(Base64Decode("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"), nil, "bt", _ENV))() ScriptStatus("REHFFJHDEJH") 
@@ -87,21 +88,55 @@ local KillTextList = {
 						"Kill! - (Q)+(E)",						-- 09
 						"Kill! - (E)+(R)",						-- 10
 						"Kill! - (Q)+(R)+(E)"					-- 11
+					}
+
+local Items = {
+	BWC = { id = 3144, range = 400, reqTarget = true, slot = nil },
+	HGB = { id = 3146, range = 400, reqTarget = true, slot = nil },
+	BFT = { id = 3188, range = 750, reqTarget = true, slot = nil },
+}
+
+local GapCloserList = {
+	{charName = "Aatrox", spellName = "AatroxQ", name = "Q"},
+	{charName = "Akali", spellName = "AkaliShadowDance", name = "R"},
+	{charName = "Alistar", spellName = "Headbutt", name = "W"},
+	{charName = "Fiora", spellName = "FioraQ", name = "R"},
+	{charName = "Diana", spellName = "DianaTeleport", name = "W"},
+	{charName = "Elise", spellName = "EliseSpiderQCast", name = "W"},
+	{charName = "Fizz", spellName = "FizzPiercingStrike", name = "Q"},
+	{charName = "Gragas", spellName = "GragasE", name = "E"},
+	{charName = "Hecarim", spellName = "HecarimUlt", name = "R"},
+	{charName = "JarvanIV", spellName = "JarvanIVDragonStrike", name = "E"},
+	{charName = "Irelia", spellName = "IreliaGatotsu", name = "Q"},
+	{charName = "Jax", spellName = "JaxLeapStrike", name = "Q"},
+	{charName = "Khazix", spellName = "KhazixE", name = "E"},
+	{charName = "Khazix", spellName = "khazixelong", name = "Evolved E"},
+	{charName = "LeBlanc", spellName = "LeblancSlide", name = "W"},
+	{charName = "LeBlanc", spellName = "LeblancSlideM", name = "UltW"},
+	{charName = "LeeSin", spellName = "BlindMonkQTwo", name = "Q"},
+	{charName = "Leona", spellName = "LeonaZenithBlade", name = "E"},
+	{charName = "Malphite", spellName = "UFSlash", name = "R"},
+	{charName = "Pantheon", spellName = "Pantheon_LeapBash", name = "R"},
+	{charName = "Poppy", spellName = "PoppyHeroicCharge", name = "W"},
+	{charName = "Renekton", spellName = "RenektonSliceAndDice", name = "E"},
+	{charName = "Riven", spellName = "RivenTriCleave", name = "E"},
+	{charName = "Sejuani", spellName = "SejuaniArcticAssault", name = "E"},
+	{charName = "Tryndamere", spellName = "slashCast", name = "E"},
+	{charName = "Vi", spellName = "ViQ", name = "Q"},
+	{charName = "MonkeyKing", spellName = "MonkeyKingNimbus", name = "Q"},
+	{charName = "XinZhao", spellName = "XenZhaoSweep", name = "Q"},
+	{charName = "Yasuo", spellName = "YasuoDashWrapper", name = "E"},
+}
 
 function OnLoad()
 	Menu()
 	
 	Variables()
 	
-	enemyMinions = minionManager(MINION_ENEMY, Qrange, myHero, MINION_SORT_MAXHEALTH_DEC)
-	
 	killstring = {}
-	
-	Ignite = { name = "summonerdot", range = 600, slot = nil }
 	
 	Target = GetCustomTarget()
 	SxOrb:ForceTarget(Target)
-	lastSkin = 0
 	
 	if myHero:GetSpellData(SUMMONER_1).name:find(Ignite.name) then
 		Ignite.slot = SUMMONER_1  
@@ -500,11 +535,17 @@ function Menu()
 			Config.farm:addSubMenu("E Settings", "eMenu")
 				Config.farm.eMenu:addParam("useE", "Use E to LastHit", SCRIPT_PARAM_ONOFF, true)
 				Config.farm.eMenu:addParam("useE2", "Use E to WaveClear", SCRIPT_PARAM_ONOFF, true)
+
 	Config:addSubMenu("[Akali Elo Shower]: Misc Settings", "misc")
-		--Config.misc:addParam("skinList", "Choose your skin", SCRIPT_PARAM_LIST,	7, { "Stinger", "Crimson","All-Star", "Nurse", "Silverfang", "Blood Moon", "Classic" })	
-		--Config.misc:addParam("autoLevel", "Auto Level Skills", SCRIPT_PARAM_ONOFF, false)
-		--Config.misc:addParam("autoLevel2", "Auto Level Sequence", SCRIPT_PARAM_LIST, 1, { "R>Q>W>E", "R>Q>E>W", "R>W>Q>E", "R>W>E>Q", "R>E>Q>W", "R>E>W>Q" })
-		Config.misc:addParam("permaShow", "Activate Perma Show", SCRIPT_PARAM_ONOFF, true)
+		Config.misc:addSubMenu("GapCloser Spells", "ES2")
+			for i, enemy in ipairs(GetEnemyHeroes()) do
+				for _, champ in pairs(GapCloserList) do
+					if enemy.charName == champ.charName then
+						Config.misc.ES2:addParam(champ.spellName, "GapCloser "..champ.charName.." "..champ.name, SCRIPT_PARAM_ONOFF, true)
+					end
+				end
+			end
+		Config.misc:addParam("UG", "Auto W on enemy GapCloser (W)", SCRIPT_PARAM_ONOFF, true)
 		Config.misc:addParam("usePackets", "Use Packets (VIP Only!)", SCRIPT_PARAM_ONOFF, true)
 			Config.misc:addSubMenu("Zhonyas", "zhonyas")
 				Config.misc.zhonyas:addParam("zhonyas", "Auto Zhonyas", SCRIPT_PARAM_ONOFF, true)
@@ -547,12 +588,8 @@ function Variables()
 	
 	enemyMinions = minionManager(MINION_ENEMY, Qrange, myHero, MINION_SORT_MAXHEALTH_DEC)
 	
-	VP = VPrediction()
-	
 	_G.oldDrawCircle = rawget(_G, 'DrawCircle')
 	_G.DrawCircle = DrawCircle2	
-	
-	abilitylvl, lastskin = 0, 0
 	
 	if myHero:GetSpellData(SUMMONER_1).name:find(Ignite.name) then
 		Ignite.slot = SUMMONER_1
@@ -560,25 +597,21 @@ function Variables()
 		Ignite.slot = SUMMONER_2
 	end
 	
-	Items = {
-		["BLACKFIRE"]	= { id = 3188, range = 750, ready = false, dmg = 0 },
-		["BRK"]			= { id = 3153, range = 500, ready = false, dmg = 0 },
-		["BWC"]			= { id = 3144, range = 450, ready = false, dmg = 0 },
-		["DFG"]			= { id = 3128, range = 750, ready = false, dmg = 0 },
-		["HXG"]			= { id = 3146, range = 700, ready = false, dmg = 0 },
-		["ODYNVEIL"]	= { id = 3180, range = 525, ready = false, dmg = 0 },
-		["DVN"]			= { id = 3131, range = 200, ready = false, dmg = 0 },
-		["ENT"]			= { id = 3184, range = 350, ready = false, dmg = 0 },
-		["HYDRA"]		= { id = 3074, range = 350, ready = false, dmg = 0 },
-		["TIAMAT"]		= { id = 3077, range = 350, ready = false, dmg = 0 },
-		["YGB"]			= { id = 3142, range = 350, ready = false, dmg = 0 }
-	}
 end
 
 function UseItems(unit)
-	for i, item in ipairs(Items) do
-		if GetIventoryItemIsCastable(item.id) and GetDistanceSqr(unit) <= item.range*item.range then
-		CastItem(item.id,unit)
+	if unit ~= nil then
+		for _, item in pairs(Items) do
+			item.slot = GetInventorySlotItem(item.id)
+			if item.slot ~= nil then
+				if item.reqTarget and GetDistance(unit) < item.range then
+					CastSpell(item.slot, unit)
+				elseif not item.reqTarget then
+					if (GetDistance(unit) - getHitBoxRadius(myHero) - getHitBoxRadius(unit)) < 50 then
+						CastSpell(item.slot)
+					end
+				end
+			end
 		end
 	end
 end
@@ -622,5 +655,25 @@ function DrawCircle2(x, y, z, radius, color)
   
   if OnScreen({ x = sPos.x, y = sPos.y }, { x = sPos.x, y = sPos.y }) then
     DrawCircleNextLvl(x, y, z, radius, Config.draw.lfc.Width, color, Config.draw.lfc.CL) 
+	end
+end
+
+function OnProcessSpell(unit, spell)
+	if Config.misc.UG and Wready then
+		for _, x in pairs(GapCloserList) do
+			if unit and unit.team ~= myHero.team and unit.type == myHero.type and spell then
+				if spell.name == x.spellName and Config.misc.ES2[x.spellName] and ValidTarget(unit, Wrange) then
+					if spell.target and spell.target.isMe then
+						CastW(unit)
+					elseif not spell.target then
+						local endPos1 = Vector(unit.visionPos) + 300 * (Vector(spell.endPos) - Vector(unit.visionPos)):normalized()
+						local endPos2 = Vector(unit.visionPos) + 100 * (Vector(spell.endPos) - Vector(unit.visionPos)):normalized()
+						if (GetDistanceSqr(myHero.visionPos, unit.visionPos) > GetDistanceSqr(myHero.visionPos, endPos1) or GetDistanceSqr(myHero.visionPos, unit.visionPos) > GetDistanceSqr(myHero.visionPos, endPos2))  then
+							CastW(unit)
+						end
+					end
+				end
+			end
+		end
 	end
 end
