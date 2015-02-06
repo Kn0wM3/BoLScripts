@@ -1,5 +1,5 @@
 --[[
-		Ryze by Kn0wM3
+		Ryze the Dark Mage by Kn0wM3
 		Hope you enjoy!
 		Please report bugs on the Forum!(http://forum.botoflegends.com/topic/50262-freescriptsxorbsacrmma-ryze-the-dark-mage-released-6022015/)
 	
@@ -46,7 +46,7 @@ local UPDATE_HOST = "raw.github.com"
 local UPDATE_PATH = "/Kn0wM3/BoLScripts/blob/master/Ryze the Dark Mage.lua".."?rand="..math.random(1,10000)
 local UPDATE_FILE_PATH = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
 local UPDATE_URL = "https://"..UPDATE_HOST..UPDATE_PATH
-function AutoupdaterMsg(msg) print("<font color=\"#FF0000\"><b>AnnieMaster:</b></font> <font color=\"#FFFFFF\">"..msg..".</font>") end
+function AutoupdaterMsg(msg) print("<font color=\"#FF0000\"><b>Ryze the Dark Mage:</b></font> <font color=\"#FFFFFF\">"..msg..".</font>") end
 if _G.AUTOUPDATE then
 	local ServerData = GetWebResult(UPDATE_HOST, "/Kn0wM3/BoLScripts/blob/master/Ryze the Dark Mage.Version")
 	if ServerData then
