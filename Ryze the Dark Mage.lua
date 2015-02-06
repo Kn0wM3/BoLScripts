@@ -28,6 +28,8 @@
 	
 		1.0 -Release
 		1.01 -Added Scripter Panel
+		1.02 -Fixed AutoUpdater
+		1.02a -Fixed little Bug
 --]]
 
 if myHero.charName ~= "Ryze" then return end
