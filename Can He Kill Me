@@ -1,0 +1,107 @@
+function OnLoad()
+ 
+Variables()
+menu()
+ 
+end
+ 
+function Variables()
+enemyCount = 0
+        enemyTable = {}
+ 
+        for i = 1, heroManager.iCount do
+                local champ = heroManager:GetHero(i)
+               
+                if champ.team ~= player.team then
+                        enemyCount = enemyCount + 1
+                        enemyTable[enemyCount] = { player = champ, indicatorText = "", damageGettingText = "", ultAlert = false, ready = true}
+                end
+        end
+end
+
+function OnTick()
+	DmgCalc()
+end
+
+function menu()
+	myConfig = scriptConfig("Can he kill you?","can he kill you?")
+	 
+	myConfig:addSubMenu("Drawing Settings", "drawing")
+		myConfig.drawing:addParam("drawText", "Draw Enemy Text", SCRIPT_PARAM_ONOFF, true)
+		 for i, enemy in ipairs(GetEnemyHeroes()) do
+		 myConfig.drawing:addParam(enemy.charName,"Draw for: " .. enemy.charName .. "?", SCRIPT_PARAM_LIST, 1, {"YES", "NO"})
+		 end
+
+	PrintChat("<font color='#C4296F'> Can he kill you? </font><font color='#ef9d02'>loaded. Good luck, " .. player.name .. ".</font>")
+end
+
+function DmgCalc()
+	for i = 1, enemyCount do
+	local enemy = enemyTable[i].player
+	if ValidTarget(enemy) and enemy.visible then
+
+			SpellQ = getDmg("Q", myHero, enemy)
+			SpellW = getDmg("W", myHero, enemy)
+			SpellE = getDmg("E", myHero, enemy)
+			SpellR = getDmg("R", myHero, enemy)
+
+			if myHero.health < SpellR then
+					enemyTable[i].indicatorText = "Kills you with: R"
+				   
+			elseif myHero.health < SpellQ then
+					enemyTable[i].indicatorText = "Kills you with: Q"
+				   
+			elseif myHero.health < SpellW then
+					enemyTable[i].indicatorText = "Kills you with: W"
+				   
+			elseif myHero.health < SpellE then
+					enemyTable[i].indicatorText = "Kills you with: E"
+		   
+			elseif myHero.health < SpellQ + SpellR then
+					enemyTable[i].indicatorText = "Kills you with: Q + R"
+		   
+			elseif myHero.health < SpellW + SpellR then
+					enemyTable[i].indicatorText = "Kills you with: W + R"
+				   
+			elseif myHero.health < SpellE + SpellR then
+					enemyTable[i].indicatorText = "Kills you with: E + R"
+		   
+			elseif myHero.health < SpellQ + SpellW + SpellR then
+					enemyTable[i].indicatorText = "Kills you with: Q + W + R"
+				   
+			elseif myHero.health < SpellQ + SpellE + SpellR then
+					enemyTable[i].indicatorText = "Kills you with: Q + E + R"
+					
+			elseif myHero.health < SpellQ + SpellW + SpellE + SpellR then
+					enemyTable[i].indicatorText = "Kills you with: Q + W + E + R"
+				   
+			else
+					local dmgTotal = (SpellQ + SpellW + SpellE + SpellR)
+					local hpLeft = math.round(myHero.health - dmgTotal)
+					local percentLeft = math.round(hpLeft / myHero.maxHealth * 100)
+
+					enemyTable[i].indicatorText = "Cant kill you ( " .. percentLeft .. "% )"
+			end
+
+			local enemyAD = getDmg("AD", myHero, enemy)
+	 
+			enemyTable[i].damageGettingText = enemy.charName .. " kills you with " .. math.ceil(myHero.health / enemyAD) .. " hits"
+        end
+    end
+end
+
+function OnDraw()                                                                                                
+	if myConfig.drawing.drawText then                
+	for i = 1, enemyCount do
+		local enemy = enemyTable[i].player
+
+			if ValidTarget(enemy) and enemy.visible and myConfig.drawing[enemy.charName] == 1 then
+				local barPos = WorldToScreen(D3DXVECTOR3(enemy.x, enemy.y, enemy.z))
+				local pos = { X = barPos.x - 35, Y = barPos.y - 50 }
+				   
+				DrawText(enemyTable[i].indicatorText, 15, pos.X + 20, pos.Y, (enemyTable[i].ready and ARGB(255, 0, 255, 0)) or ARGB(255, 255, 220, 0))
+				DrawText(enemyTable[i].damageGettingText, 15, pos.X + 20, pos.Y + 15, ARGB(255, 255, 0, 0))
+			end
+		end
+	end            
+end
