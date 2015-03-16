@@ -227,7 +227,7 @@ function AutoW()
 		if CountEnemyHeroInRange(wRange) >= amount then
 			CastSpell(_W, myHero.x, myHero.z)
 		elseif ((health/maxHealth)*100) <= Config.skills.wMenu.wHealth and CountEnemyHeroInRange(wRange) <= amount then
-			CastPell(_W, myHero.x, myHero.z)
+			CastSpell(_W, myHero.x, myHero.z)
 	end
 end
 
