@@ -4,6 +4,8 @@
 	lease report bugs on the forum!(http://forum.botoflegends.com/topic/47828-)
 ]]
 
+if myHero.charName ~= "Akali" then return end
+
 _G.AUTOUPDATE = true -- Change to "false" to disable auto updates!
 
 local version = "1.7"
@@ -102,6 +104,7 @@ function OnLoad()
 	Variables()
 	PriorityOnLoad()
 	KillText = {}
+	
 end
 
 function OnTick()
@@ -109,10 +112,10 @@ function OnTick()
 	
 	if Config.keys.combo then Combo(Target) end
 	if Config.keys.harass or Config.keys.harass2 then Harass(Target) end
-  if Config.harass.q.autoQ then AutoQ() end
-  if Config.farm.q.autoQ then FarmQ() end
-  if Config.harass.e.autoE then AutoE() end
-  if Config.farm.e.autoE then FarmE() end
+	if Config.harass.q.autoQ then AutoQ() end
+	if Config.farm.q.autoQ then FarmQ() end
+	if Config.harass.e.autoE then AutoE() end
+	if Config.farm.e.autoE then FarmE() end
 	if Config.misc.w.useAutoW and Wready then AutoW() end
 	if Config.ks.ks then KillSteal() end
 	if Config.keys.farmCS or Config.keys.farmCS2 then LastHitMode() end
@@ -191,14 +194,14 @@ function Combo(unit)
 		if Config.combo.r.useR and Config.combo.r.chaseR and Rready then
 			if Config.combo.w.useW and Wready then
 			ChaseR(unit)
-			CastSpell(_W, myHero.x, myHero.z)
+			DelayAction(function() CastSpell(_W, myHero.x, myHero.z) end, 0.5)
 		else 
 			ChaseR(unit)
 			end
 		end
 		if Config.combo.r.useR and Config.combo.w.useW and Wready and Rready then
 			CastR(unit)
-			CastSpell(_W, myHero.x, myHero.z)
+			DelayAction(function() CastSpell(_W, myHero.x, myHero.z) end, 0.5)
 		else 
 			CastR(unit)
 		end
@@ -352,7 +355,7 @@ function CastR(unit)
 end
 
 function ChaseR(unit)
-	if unit ~= nil and GetDistance(unit) >= Config.combo.r.chaseRange and Rready then
+	if unit ~= nil and GetDistance(unit) <= Config.combo.r.chaseRange and Rready then
 		if VIP_USER and Config.misc.usePackets then
 			Packet("S_CAST", {spellId = _R, targetNetworkId = unit.networkID}):send() 
 		else
@@ -499,7 +502,6 @@ function Checks()
 	Eready = (myHero:CanUseSpell(_E) == READY)
 	Rready = (myHero:CanUseSpell(_R) == READY)
 	
-	Ignite = { name = "summonerdot", range = 600, slot = nil }
 	Igniteready = (Ignite.slot ~= nil and myHero:CanUseSpell(Ignite.slot) == READY)
 	
 	if SelectedTarget ~= nil and ValidTarget(SelectedTarget, Rrange+50) then
@@ -522,26 +524,24 @@ function Menu()
 
 	Config = scriptConfig("Akali Elo Shower", "Akali1") 
 	Config:addSubMenu("[Akali Elo Shower]: Combo Settings", "combo")
-		Config.combo:addParam("focus", "Focus Selected Target", SCRIPT_PARAM_ONOFF, true)
 		Config.combo:addParam("combomode", "Combo Mode List", SCRIPT_PARAM_LIST, 1, {"RQWE", "QRWE"})
 		Config.combo:addParam("useItems", "Use Items in Combo", SCRIPT_PARAM_ONOFF, true)
+		Config.combo:addParam("focus", "Focus Selected Target", SCRIPT_PARAM_ONOFF, true)
 		Config.combo:addSubMenu("Q Settings", "q")
 			Config.combo.q:addParam("useQ", "Use Q in Combo", SCRIPT_PARAM_ONOFF, true)
-			Config.combo.q:addParam("proqQ", "Proq Q", SCRIPT_PARAM_ONOFF, false)
 		Config.combo:addSubMenu("W Settings", "w")
 			Config.combo.w:addParam("useW", "Use W after ult", SCRIPT_PARAM_ONOFF, true)
 		Config.combo:addSubMenu("E Settings", "e")
 			Config.combo.e:addParam("useE", "Use E in Combo", SCRIPT_PARAM_ONOFF, true)
 		Config.combo:addSubMenu("R Settings", "r")
 			Config.combo.r:addParam("useR", "Use R in Combo", SCRIPT_PARAM_ONOFF, true)
-			Config.combo.r:addParam("chaseR", "Use R to chase", SCRIPT_PARAM_ONOFF, true)
+			Config.combo.r:addParam("chaseR", "Use R to Chase", SCRIPT_PARAM_ONOFF, true)
 			Config.combo.r:addParam("chaseRange", "Chase R Range", SCRIPT_PARAM_SLICE, 350, 0, 700, 0)
 		
 	Config:addSubMenu("[Akali Elo Shower]: Harass Settings", "harass")
 		Config.harass:addSubMenu("Q Settings", "q")
 			Config.harass.q:addParam("useQ", "Use Q to Harass", SCRIPT_PARAM_ONOFF, true)
 			Config.harass.q:addParam("autoQ", "Auto Q to Harass", SCRIPT_PARAM_ONOFF, false)
-			Config.harass.q:addParam("proqQ", "Proq Q to Harass", SCRIPT_PARAM_ONOFF, false)
 		Config.harass:addSubMenu("E Settings", "e")
 			Config.harass.e:addParam("useE", "Use E to Harass", SCRIPT_PARAM_ONOFF, true)
 			Config.harass.e:addParam("autoE", "Auto E to Harass", SCRIPT_PARAM_ONOFF, true)
@@ -881,6 +881,7 @@ function DrawIndicator(enemy)
     local barwidth = EPos.x - SPos.x
     local Position = SPos.x + math.max(0, (enemy.health - damage) / enemy.maxHealth) * barwidth
 
+	DrawText("|", 16, math.floor(Position), math.floor(SPos.y + 8), ARGB(255,0,255,0))
     DrawText("HP: "..math.floor(enemy.health - damage), 12, math.floor(SPos.x + 25), math.floor(SPos.y - 15), (enemy.health - damage) > 0 and ARGB(255, 0, 255, 0) or  ARGB(255, 255, 0, 0))
 end 
 
