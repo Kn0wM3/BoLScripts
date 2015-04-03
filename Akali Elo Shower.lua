@@ -6,7 +6,7 @@
 
 if myHero.charName ~= "Akali" then return end
 
-_G.AUTOUPDATE = false -- Change to "false" to disable auto updates!
+_G.AUTOUPDATE = true -- Change to "false" to disable auto updates!
 
 local version = "1.7"
 local UPDATE_HOST = "raw.github.com"
