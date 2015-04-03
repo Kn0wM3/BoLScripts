@@ -6,7 +6,7 @@
 
 if myHero.charName ~= "Akali" then return end
 
-_G.AUTOUPDATE = true -- Change to "false" to disable auto updates!
+_G.AUTOUPDATE = false -- Change to "false" to disable auto updates!
 
 local version = "1.7"
 local UPDATE_HOST = "raw.github.com"
@@ -116,7 +116,7 @@ function OnTick()
 	if Config.farm.q.autoQ then FarmQ() end
 	if Config.harass.e.autoE then AutoE() end
 	if Config.farm.e.autoE then FarmE() end
-	if Config.misc.w.useAutoW and Wready then AutoW() end
+	if Config.misc.w.autoW and Wready then AutoW() end
 	if Config.ks.ks then KillSteal() end
 	if Config.keys.farmCS or Config.keys.farmCS2 then LastHitMode() end
 	if Config.keys.clearCS or Config.keys.clearCS2 then LaneClearMode() end
@@ -176,18 +176,19 @@ end
 
 function AutoW()
 	local wRange = Config.misc.w.wRange
-	local amount = Config.misc.w.wCount2
+	local amount = Config.misc.w.wCount
+	local amount2 = Config.misc.w.wCount2
 	local health = myHero.health
 	local maxHealth = myHero.maxHealth
 		if CountEnemyHeroInRange(wRange) >= amount then
 			CastSpell(_W, myHero.x, myHero.z)
-		elseif ((health/maxHealth)*100) <= Config.misc.w.wHealth and CountEnemyHeroInRange(wRange) <= amount then
+		elseif ((health/maxHealth)*100) <= Config.misc.w.wHealth and CountEnemyHeroInRange(wRange) >= amount2 then
 			CastSpell(_W, myHero.x, myHero.z)
 	end
 end
 
 function Combo(unit)
-	if ValidTarget(unit) and unit ~= nil then
+	if ValidTarget(unit) and unit ~= nil and unit.type == myHero.type then
 		if Config.combo.useItems then
 			UseItems(unit)
 		end
@@ -215,7 +216,7 @@ function Combo(unit)
 end
 
 function Harass(unit)
-	if ValidTarget(unit) and unit ~= nil then
+	if ValidTarget(unit) and unit ~= nil and unit.type == myHero.type then
 		if Config.harass.q.useQ then 
 			CastQ(unit)
 		end
@@ -557,38 +558,6 @@ function Menu()
 			Config.farm.e:addParam("clearE", "Use E to LaneClear", SCRIPT_PARAM_ONOFF, true)
 			Config.farm.e:addParam("jungleE", "Use E to JungleClear", SCRIPT_PARAM_ONOFF, true)
 			Config.farm.e:addParam("autoE", "Use E to AutoFarm", SCRIPT_PARAM_ONOFF, true)
-				
-	Config:addSubMenu("[Akali Elo Shower]: Key Settings", "keys")
-		Config.keys:addParam("combo", "Combo Mode", SCRIPT_PARAM_ONKEYDOWN, false, 32)
-		Config.keys:addParam("harass", "Harass Mode", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("V"))
-		Config.keys:addParam("harass2", "Harass Toggle Mode", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("V"))
-		Config.keys:addParam("farmCS", "Farm Mode", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("C"))
-		Config.keys:addParam("farmCS2", "Farm Toggle Mode", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("C"))
-		Config.keys:addParam("clearCS", "Clear Mode", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("M"))
-		Config.keys:addParam("clearCS2", "Clear Toggle Mode", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("M"))
-	
-	Config:addSubMenu("[Akali Elo Shower]: Misc Settings", "misc")
-		Config.misc:addSubMenu("GapCloser Spells", "ES2")
-			for i, enemy in ipairs(GetEnemyHeroes()) do
-				for _, champ in pairs(GapCloserList) do
-					if enemy.charName == champ.charName then
-						Config.misc.ES2:addParam(champ.spellName, "GapCloser "..champ.charName.." "..champ.name, SCRIPT_PARAM_ONOFF, true)
-					end
-				end
-			end
-		Config.misc:addParam("UG", "Auto W on enemy GapCloser (W)", SCRIPT_PARAM_ONOFF, true)
-		Config.misc:addParam("usePackets", "Use Packets (VIP Only!)", SCRIPT_PARAM_ONOFF, true)
-		Config.misc:addSubMenu("W Settings", "w")
-			Config.misc.w:addParam("autoW", "Use Auto W", SCRIPT_PARAM_ONOFF, false)
-			Config.misc.w:addParam("wCount", "Auto W if x Enemies are near", SCRIPT_PARAM_SLICE, 2, 0, 5, 0)
-			Config.misc.w:addParam("wRange", "Auto W Range", SCRIPT_PARAM_SLICE, 300, 0, 1200, 0)
-			Config.misc.w:addParam("wHealth", "Auto W if Health is under %", SCRIPT_PARAM_SLICE, 15, 0, 100, 0)
-			Config.misc.w:addParam("wCount", "Auto LifeSafe W if x Enemies are near", SCRIPT_PARAM_SLICE, 2, 0, 5, 0)
-		Config.misc:addSubMenu("Zhonyas", "zhonyas")
-			Config.misc.zhonyas:addParam("zhonyas", "Auto Zhonyas", SCRIPT_PARAM_ONOFF, true)
-			Config.misc.zhonyas:addParam("zhonyasHP", "Use Zhonyas under % health", SCRIPT_PARAM_SLICE, 20, 0, 100 , 0)
-			Config.misc.zhonyas:addParam("zRange", "Zhonyas Range", SCRIPT_PARAM_SLICE, 500, 0, 800, 0)
-			Config.misc.zhonyas:addParam("zAmount", "Use Zhonyas if x Enemies are near", SCRIPT_PARAM_SLICE, 1, 0, 5, 0)
 
 	Config:addSubMenu("[Akali Elo Shower]: Killsteal Settings", "ks")
 		Config.ks:addParam("ks", "Use SmartKS", SCRIPT_PARAM_ONOFF, true)
@@ -613,6 +582,38 @@ function Menu()
 			Config.draw.lfc:addParam("CL", "Quality", 4, 75, 75, 2000, 0)
 			Config.draw.lfc:addParam("Width", "Width", 4, 1, 1, 10, 0)
 			
+		Config:addSubMenu("[Akali Elo Shower]: Misc Settings", "misc")
+		Config.misc:addSubMenu("GapCloser Spells", "ES2")
+			for i, enemy in ipairs(GetEnemyHeroes()) do
+				for _, champ in pairs(GapCloserList) do
+					if enemy.charName == champ.charName then
+						Config.misc.ES2:addParam(champ.spellName, "GapCloser "..champ.charName.." "..champ.name, SCRIPT_PARAM_ONOFF, true)
+					end
+				end
+			end
+		Config.misc:addParam("UG", "Auto W on enemy GapCloser (W)", SCRIPT_PARAM_ONOFF, true)
+		Config.misc:addParam("usePackets", "Use Packets (VIP Only!)", SCRIPT_PARAM_ONOFF, true)
+		Config.misc:addSubMenu("W Settings", "w")
+			Config.misc.w:addParam("autoW", "Use Auto W", SCRIPT_PARAM_ONOFF, false)
+			Config.misc.w:addParam("wCount", "Auto W Enemies", SCRIPT_PARAM_SLICE, 2, 0, 5, 0)
+			Config.misc.w:addParam("wRange", "Auto W Range", SCRIPT_PARAM_SLICE, 300, 0, 1200, 0)
+			Config.misc.w:addParam("wHealth", "Auto W Health", SCRIPT_PARAM_SLICE, 15, 0, 100, 0)
+			Config.misc.w:addParam("wCount2", "Auto LifeSafe W Enemies", SCRIPT_PARAM_SLICE, 2, 0, 5, 0)
+		Config.misc:addSubMenu("Zhonyas", "zhonyas")
+			Config.misc.zhonyas:addParam("zhonyas", "Auto Zhonyas", SCRIPT_PARAM_ONOFF, true)
+			Config.misc.zhonyas:addParam("zhonyasHP", "Use Zhonyas under % health", SCRIPT_PARAM_SLICE, 20, 0, 100 , 0)
+			Config.misc.zhonyas:addParam("zRange", "Zhonyas Range", SCRIPT_PARAM_SLICE, 500, 0, 800, 0)
+			Config.misc.zhonyas:addParam("zAmount", "Use Zhonyas if x Enemies are near", SCRIPT_PARAM_SLICE, 1, 0, 5, 0)
+			
+		Config:addSubMenu("[Akali Elo Shower]: Key Settings", "keys")
+		Config.keys:addParam("combo", "Combo Mode", SCRIPT_PARAM_ONKEYDOWN, false, 32)
+		Config.keys:addParam("harass", "Harass Mode", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("V"))
+		Config.keys:addParam("harass2", "Harass Toggle Mode", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("V"))
+		Config.keys:addParam("farmCS", "Farm Mode", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("C"))
+		Config.keys:addParam("farmCS2", "Farm Toggle Mode", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("C"))
+		Config.keys:addParam("clearCS", "Clear Mode", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("M"))
+		Config.keys:addParam("clearCS2", "Clear Toggle Mode", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("M"))
+		
 		Config:addSubMenu("[Akali Elo Shower]: Orbwalker", "Orbwalking")
 			SxOrb:LoadToMenu(Config.Orbwalking)
 	
@@ -620,6 +621,13 @@ function Menu()
 	TargetSelector.name = "Akali"
 	Config:addTS(TargetSelector)
 	
+	Config.keys:permaShow("combo")
+	Config.keys:permaShow("harass")
+	Config.keys:permaShow("harass2")
+	Config.keys:permaShow("farmCS")
+	Config.keys:permaShow("farmCS2")
+	Config.keys:permaShow("clearCS")
+	Config.keys:permaShow("clearCS2")
 end
 
 function Variables()
@@ -866,13 +874,14 @@ function GetEnemyHPBarPos(enemy)
 end
 
 function DrawIndicator(enemy)
-	local Qdmg, Edmg, Rdmg = getDmg("Q", enemy, myHero), getDmg("E", enemy, myHero), getDmg("R", enemy, myHero)
+	local Qdmg, Edmg, Rdmg, AAdmg = getDmg("Q", enemy, myHero), getDmg("E", enemy, myHero), getDmg("R", enemy, myHero), getDmg("AD", enemy, myHero)
 	
 	Qdmg = ((Qready and Qdmg) or 0)
 	Edmg = ((Eready and Edmg) or 0)
 	Rdmg = ((Rready and Rdmg) or 0)
+	AAdmg = ((Aadmg) or 0)
 
-    local damage = Qdmg + Edmg + Rdmg
+    local damage = Qdmg + Edmg + Rdmg + AAdmg
 
     local SPos, EPos = GetEnemyHPBarPos(enemy)
 
