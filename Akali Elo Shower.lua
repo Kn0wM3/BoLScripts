@@ -8,7 +8,7 @@ if myHero.charName ~= "Akali" then return end
 
 _G.AUTOUPDATE = true -- Change to "false" to disable auto updates!
 
-local version = "1.7"
+local version = "1.71"
 local UPDATE_HOST = "raw.github.com"
 local UPDATE_PATH = "/Kn0wM3/BoLScripts/master/Akali Elo Shower.lua".."?rand="..math.random(1,10000)
 local UPDATE_FILE_PATH = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
