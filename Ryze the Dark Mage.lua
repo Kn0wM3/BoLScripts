@@ -8,7 +8,7 @@ if myHero.charName ~= "Ryze" then return end
 
 _G.AUTOUPDATE = true -- Change to "false" to disable auto updates!
 
-local version = "1.11"
+local version = "1.12"
 local author = "Kn0wM3"
 local UPDATE_HOST = "raw.github.com"
 local UPDATE_PATH = "/Kn0wM3/BoLScripts/master/Ryze the Dark Mage.lua".."?rand="..math.random(1,10000)
@@ -349,7 +349,7 @@ end
 
 function KillSteal()
 	for _, enemy in ipairs(GetEnemyHeroes()) do	
-		local IDMG = (50 + (20 * myHero.level))
+		local iDmg = (50 + (20 * myHero.level))
 		local qDmg = getDmg("Q", enemy, myHero)
 		local wDmg = getDmg("W", enemy, myHero)
 		local eDmg = getDmg("E", enemy, myHero)
