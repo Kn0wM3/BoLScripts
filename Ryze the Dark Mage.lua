@@ -38,6 +38,59 @@ require "SxOrbWalk"
 local Qready, Wready, Eready, Rready, AADisabled = false
 local Qrange, Wrange, Erange = 625, 600, 600
 
+local KillText = {}
+local KillTextColor = ARGB(250, 255, 38, 1)
+local KillTextList = {		
+					"Harass Him!", 							-- 01
+					"Kill! - AA", 							-- 02
+					"Kill! - Ignite",						-- 03
+					"Kill! - (Q)",							-- 04
+					"Kill! - (W)",							-- 05
+					"Kill! - (E)",							-- 06
+					"Kill! - (Q)+(W)",						-- 07
+					"Kill! - (Q)+(E)",						-- 08
+					"Kill! - (W)+(E)",						-- 09
+					"Kill! - (Q)+(W)+(E)"					-- 10
+				}
+
+local GapCloserList = {
+	{charName = "Aatrox", spellName = "AatroxQ", name = "Q"},
+	{charName = "Akali", spellName = "AkaliShadowDance", name = "R"},
+	{charName = "Alistar", spellName = "Headbutt", name = "W"},
+	{charName = "Amumu", spellName = "BandageToss", name = "Q"},
+	{charName = "Fiora", spellName = "FioraQ", name = "Q"},
+	{charName = "Diana", spellName = "DianaTeleport", name = "W"},
+	{charName = "Elise", spellName = "EliseSpiderQCast", name = "W"},
+	{charName = "FiddleSticks", spellName = "Crowstorm", name = "R"},
+	{charName = "Fizz", spellName = "FizzPiercingStrike", name = "Q"},
+	{charName = "Gragas", spellName = "GragasE", name = "E"},
+	{charName = "Hecarim", spellName = "HecarimUlt", name = "R"},
+	{charName = "JarvanIV", spellName = "JarvanIVDragonStrike", name = "E"},
+	{charName = "Irelia", spellName = "IreliaGatotsu", name = "Q"},
+	{charName = "Jax", spellName = "JaxLeapStrike", name = "Q"},
+	{charName = "Katarina", spellName = "ShadowStep", name = "E"},
+	{charName = "Kassadin", spellName = "RiftWalk", name = "R"},
+	{charName = "Khazix", spellName = "KhazixE", name = "E"},
+	{charName = "Khazix", spellName = "khazixelong", name = "Evolved E"},
+	{charName = "LeBlanc", spellName = "LeblancSlide", name = "W"},
+	{charName = "LeBlanc", spellName = "LeblancSlideM", name = "UltW"},
+	{charName = "LeeSin", spellName = "BlindMonkQTwo", name = "Q"},
+	{charName = "Leona", spellName = "LeonaZenithBlade", name = "E"},
+	{charName = "Malphite", spellName = "UFSlash", name = "R"},
+	{charName = "Nautilus", spellName = "NautilusAnchorDrag", name = "Q"},
+	{charName = "Pantheon", spellName = "Pantheon_LeapBash", name = "R"},
+	{charName = "Poppy", spellName = "PoppyHeroicCharge", name = "W"},
+	{charName = "Renekton", spellName = "RenektonSliceAndDice", name = "E"},
+	{charName = "Riven", spellName = "RivenTriCleave", name = "E"},
+	{charName = "Sejuani", spellName = "SejuaniArcticAssault", name = "E"},
+	{charName = "Shen", spellName = "ShenShadowDash", name = "E"},
+	{charName = "Tristana", spellName = "RocketJump", name = "W"},
+	{charName = "Tryndamere", spellName = "slashCast", name = "E"},
+	{charName = "Vi", spellName = "ViQ", name = "Q"},
+	{charName = "MonkeyKing", spellName = "MonkeyKingNimbus", name = "Q"},
+	{charName = "XinZhao", spellName = "XenZhaoSweep", name = "Q"},
+	{charName = "Yasuo", spellName = "YasuoDashWrapper", name = "E"},
+}
 function OnLoad()
 	Menu()
 	Variables()
@@ -611,60 +664,7 @@ function Variables()
 	else
 		TwistedTreeline = false
 	end
-	
-	local KillText = {}
-	local KillTextColor = ARGB(250, 255, 38, 1)
-	local KillTextList = {		
-						"Harass Him!", 							-- 01
-						"Kill! - AA", 							-- 02
-						"Kill! - Ignite",						-- 03
-						"Kill! - (Q)",							-- 04
-						"Kill! - (W)",							-- 05
-						"Kill! - (E)",							-- 06
-						"Kill! - (Q)+(W)",						-- 07
-						"Kill! - (Q)+(E)",						-- 08
-						"Kill! - (W)+(E)",						-- 09
-						"Kill! - (Q)+(W)+(E)"					-- 10
-					}
 
-	GapCloserList = {
-		{charName = "Aatrox", spellName = "AatroxQ", name = "Q"},
-		{charName = "Akali", spellName = "AkaliShadowDance", name = "R"},
-		{charName = "Alistar", spellName = "Headbutt", name = "W"},
-		{charName = "Amumu", spellName = "BandageToss", name = "Q"},
-		{charName = "Fiora", spellName = "FioraQ", name = "Q"},
-		{charName = "Diana", spellName = "DianaTeleport", name = "W"},
-		{charName = "Elise", spellName = "EliseSpiderQCast", name = "W"},
-		{charName = "FiddleSticks", spellName = "Crowstorm", name = "R"},
-		{charName = "Fizz", spellName = "FizzPiercingStrike", name = "Q"},
-		{charName = "Gragas", spellName = "GragasE", name = "E"},
-		{charName = "Hecarim", spellName = "HecarimUlt", name = "R"},
-		{charName = "JarvanIV", spellName = "JarvanIVDragonStrike", name = "E"},
-		{charName = "Irelia", spellName = "IreliaGatotsu", name = "Q"},
-		{charName = "Jax", spellName = "JaxLeapStrike", name = "Q"},
-		{charName = "Katarina", spellName = "ShadowStep", name = "E"},
-		{charName = "Kassadin", spellName = "RiftWalk", name = "R"},
-		{charName = "Khazix", spellName = "KhazixE", name = "E"},
-		{charName = "Khazix", spellName = "khazixelong", name = "Evolved E"},
-		{charName = "LeBlanc", spellName = "LeblancSlide", name = "W"},
-		{charName = "LeBlanc", spellName = "LeblancSlideM", name = "UltW"},
-		{charName = "LeeSin", spellName = "BlindMonkQTwo", name = "Q"},
-		{charName = "Leona", spellName = "LeonaZenithBlade", name = "E"},
-		{charName = "Malphite", spellName = "UFSlash", name = "R"},
-		{charName = "Nautilus", spellName = "NautilusAnchorDrag", name = "Q"},
-		{charName = "Pantheon", spellName = "Pantheon_LeapBash", name = "R"},
-		{charName = "Poppy", spellName = "PoppyHeroicCharge", name = "W"},
-		{charName = "Renekton", spellName = "RenektonSliceAndDice", name = "E"},
-		{charName = "Riven", spellName = "RivenTriCleave", name = "E"},
-		{charName = "Sejuani", spellName = "SejuaniArcticAssault", name = "E"},
-		{charName = "Shen", spellName = "ShenShadowDash", name = "E"},
-		{charName = "Tristana", spellName = "RocketJump", name = "W"},
-		{charName = "Tryndamere", spellName = "slashCast", name = "E"},
-		{charName = "Vi", spellName = "ViQ", name = "Q"},
-		{charName = "MonkeyKing", spellName = "MonkeyKingNimbus", name = "Q"},
-		{charName = "XinZhao", spellName = "XenZhaoSweep", name = "Q"},
-		{charName = "Yasuo", spellName = "YasuoDashWrapper", name = "E"},
-	}
 	priorityTable = {
 			AP = {
 				"Annie", "Ahri", "Akali", "Anivia", "Annie", "Brand", "Cassiopeia", "Diana", "Evelynn", "FiddleSticks", "Fizz", "Gragas", "Heimerdinger", "Karthus",
