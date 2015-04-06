@@ -8,7 +8,7 @@ if myHero.charName ~= "Ryze" then return end
 
 _G.AUTOUPDATE = true -- Change to "false" to disable auto updates!
 
-local version = "1.1"
+local version = "1.021"
 local author = "Kn0wM3"
 local UPDATE_HOST = "raw.github.com"
 local UPDATE_PATH = "/Kn0wM3/BoLScripts/master/Ryze the Dark Mage.lua".."?rand="..math.random(1,10000)
@@ -120,7 +120,7 @@ function CountEnemyHeroInRange(range)
 end
 
 function Combo(unit)
-	if ValidTarget(unit) and unit ~= nil then
+	if ValidTarget(unit) and unit ~= nil and unit.type == myHero.type then
 		if Config.combo.useItems then
 			UseItems(unit)
 		end
@@ -156,7 +156,7 @@ function Combo(unit)
 end
 
 function Harass(unit)
-	if ValidTarget(unit) and unit ~= nil then
+	if ValidTarget(unit) and unit ~= nil and unit.type == myHero.type then
 		if Config.harass.q.useQ and Qready then
 			CastQ(unit)
 		end
