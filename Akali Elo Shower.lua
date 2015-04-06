@@ -1,14 +1,15 @@
 --[[
 	Akali Elo Shower by Kn0wM3
 	Hope you enjoy! 
-	lease report bugs on the forum!(http://forum.botoflegends.com/topic/47828-)
+	Please report bugs on the forum!(http://forum.botoflegends.com/topic/47828-)
 ]]
 
 if myHero.charName ~= "Akali" then return end
 
 _G.AUTOUPDATE = true -- Change to "false" to disable auto updates!
 
-local version = "1.71"
+local version = "1.72"
+local author = "Kn0wM3"
 local UPDATE_HOST = "raw.github.com"
 local UPDATE_PATH = "/Kn0wM3/BoLScripts/master/Akali Elo Shower.lua".."?rand="..math.random(1,10000)
 local UPDATE_FILE_PATH = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
@@ -33,94 +34,93 @@ if _G.AUTOUPDATE then
 end
 
 require "SxOrbWalk"
-require "VPrediction"
-
-local ts
+	
 local Qready, Wready, Eready, Rready = false
 local Qrange, Erange, Rrange = 600, 325, 700
 
-local KillText = {}
-local KillTextColor = ARGB(250, 255, 38, 1)
-local KillTextList = {		
-						"Harass Him!", 							-- 01
-						"Kill! - AA", 							-- 02
-						"Kill! - Ignite",						-- 03
-						"Kill! - (Q)",							-- 04
-						"Kill! - (E)",							-- 05
-						"Kill! - (R)",							-- 06
-						"Kill! - (Q)+(E)",						-- 07
-						"Kill! - (Q)+(R)",						-- 08
-						"Kill! - (E)+(R)",						-- 09
-						"Kill! - (Q)+(R)+(E)"					-- 10
-					}
-
-local Items = {
-	BWC = { id = 3144, range = 400, reqTarget = true, slot = nil },
-	HGB = { id = 3146, range = 400, reqTarget = true, slot = nil },
-	BFT = { id = 3188, range = 750, reqTarget = true, slot = nil },
-}
-
-local GapCloserList = {
-	{charName = "Aatrox", spellName = "AatroxQ", name = "Q"},
-	{charName = "Akali", spellName = "AkaliShadowDance", name = "R"},
-	{charName = "Alistar", spellName = "Headbutt", name = "W"},
-	{charName = "Amumu", spellName = "BandageToss", name = "Q"},
-	{charName = "Fiora", spellName = "FioraQ", name = "Q"},
-	{charName = "Diana", spellName = "DianaTeleport", name = "W"},
-	{charName = "Elise", spellName = "EliseSpiderQCast", name = "W"},
-	{charName = "FiddleSticks", spellName = "Crowstorm", name = "R"},
-	{charName = "Fizz", spellName = "FizzPiercingStrike", name = "Q"},
-	{charName = "Gragas", spellName = "GragasE", name = "E"},
-	{charName = "Hecarim", spellName = "HecarimUlt", name = "R"},
-	{charName = "JarvanIV", spellName = "JarvanIVDragonStrike", name = "E"},
-	{charName = "Irelia", spellName = "IreliaGatotsu", name = "Q"},
-	{charName = "Jax", spellName = "JaxLeapStrike", name = "Q"},
-	{charName = "Katarina", spellName = "ShadowStep", name = "E"},
-	{charName = "Kassadin", spellName = "RiftWalk", name = "R"},
-	{charName = "Khazix", spellName = "KhazixE", name = "E"},
-	{charName = "Khazix", spellName = "khazixelong", name = "Evolved E"},
-	{charName = "LeBlanc", spellName = "LeblancSlide", name = "W"},
-	{charName = "LeBlanc", spellName = "LeblancSlideM", name = "UltW"},
-	{charName = "LeeSin", spellName = "BlindMonkQTwo", name = "Q"},
-	{charName = "Leona", spellName = "LeonaZenithBlade", name = "E"},
-	{charName = "Malphite", spellName = "UFSlash", name = "R"},
-	{charName = "Nautilus", spellName = "NautilusAnchorDrag", name = "Q"},
-	{charName = "Pantheon", spellName = "Pantheon_LeapBash", name = "R"},
-	{charName = "Poppy", spellName = "PoppyHeroicCharge", name = "W"},
-	{charName = "Renekton", spellName = "RenektonSliceAndDice", name = "E"},
-	{charName = "Riven", spellName = "RivenTriCleave", name = "E"},
-	{charName = "Sejuani", spellName = "SejuaniArcticAssault", name = "E"},
-	{charName = "Shen", spellName = "ShenShadowDash", name = "E"},
-	{charName = "Tristana", spellName = "RocketJump", name = "W"},
-	{charName = "Tryndamere", spellName = "slashCast", name = "E"},
-	{charName = "Vi", spellName = "ViQ", name = "Q"},
-	{charName = "MonkeyKing", spellName = "MonkeyKingNimbus", name = "Q"},
-	{charName = "XinZhao", spellName = "XenZhaoSweep", name = "Q"},
-	{charName = "Yasuo", spellName = "YasuoDashWrapper", name = "E"},
-}
-
+	
+	KillText = {}
+	KillTextColor = ARGB(250, 255, 38, 1)
+	local KillTextList = {		
+					"Harass Him!", 							-- 01
+					"Kill! - AA", 							-- 02
+					"Kill! - Ignite",						-- 03
+					"Kill! - (Q)",							-- 04
+					"Kill! - (E)",							-- 05
+					"Kill! - (R)",							-- 06
+					"Kill! - (Q)+(E)",						-- 07
+					"Kill! - (Q)+(R)",						-- 08
+					"Kill! - (E)+(R)",						-- 09
+					"Kill! - (Q)+(R)+(E)"					-- 10
+				}
+				
+	local GapCloserList = {
+		{charName = "Aatrox", spellName = "AatroxQ", name = "Q"},
+		{charName = "Akali", spellName = "AkaliShadowDance", name = "R"},
+		{charName = "Alistar", spellName = "Headbutt", name = "W"},
+		{charName = "Amumu", spellName = "BandageToss", name = "Q"},
+		{charName = "Fiora", spellName = "FioraQ", name = "Q"},
+		{charName = "Diana", spellName = "DianaTeleport", name = "W"},
+		{charName = "Elise", spellName = "EliseSpiderQCast", name = "W"},
+		{charName = "FiddleSticks", spellName = "Crowstorm", name = "R"},
+		{charName = "Fizz", spellName = "FizzPiercingStrike", name = "Q"},
+		{charName = "Gragas", spellName = "GragasE", name = "E"},
+		{charName = "Hecarim", spellName = "HecarimUlt", name = "R"},
+		{charName = "JarvanIV", spellName = "JarvanIVDragonStrike", name = "E"},
+		{charName = "Irelia", spellName = "IreliaGatotsu", name = "Q"},
+		{charName = "Jax", spellName = "JaxLeapStrike", name = "Q"},
+		{charName = "Katarina", spellName = "ShadowStep", name = "E"},
+		{charName = "Kassadin", spellName = "RiftWalk", name = "R"},
+		{charName = "Khazix", spellName = "KhazixE", name = "E"},
+		{charName = "Khazix", spellName = "khazixelong", name = "Evolved E"},
+		{charName = "LeBlanc", spellName = "LeblancSlide", name = "W"},
+		{charName = "LeBlanc", spellName = "LeblancSlideM", name = "UltW"},
+		{charName = "LeeSin", spellName = "BlindMonkQTwo", name = "Q"},
+		{charName = "Leona", spellName = "LeonaZenithBlade", name = "E"},
+		{charName = "Malphite", spellName = "UFSlash", name = "R"},
+		{charName = "Nautilus", spellName = "NautilusAnchorDrag", name = "Q"},
+		{charName = "Pantheon", spellName = "Pantheon_LeapBash", name = "R"},
+		{charName = "Poppy", spellName = "PoppyHeroicCharge", name = "W"},
+		{charName = "Renekton", spellName = "RenektonSliceAndDice", name = "E"},
+		{charName = "Riven", spellName = "RivenTriCleave", name = "E"},
+		{charName = "Sejuani", spellName = "SejuaniArcticAssault", name = "E"},
+		{charName = "Shen", spellName = "ShenShadowDash", name = "E"},
+		{charName = "Tristana", spellName = "RocketJump", name = "W"},
+		{charName = "Tryndamere", spellName = "slashCast", name = "E"},
+		{charName = "Vi", spellName = "ViQ", name = "Q"},
+		{charName = "MonkeyKing", spellName = "MonkeyKingNimbus", name = "Q"},
+		{charName = "XinZhao", spellName = "XenZhaoSweep", name = "Q"},
+		{charName = "Yasuo", spellName = "YasuoDashWrapper", name = "E"},
+	}
+	
 function OnLoad()
 	Menu()
 	Variables()
 	PriorityOnLoad()
-	KillText = {}
-	
 end
 
 function OnTick()
 	Checks()
 	
-	if Config.keys.combo then Combo(Target) end
-	if Config.keys.harass or Config.keys.harass2 then Harass(Target) end
+	if myHero.dead then return end
+	
+	ComboKey = Config.keys.combo
+	HarassKey = Config.keys.harass
+	AutoHarassKey = Config.keys.harass2
+	FarmKey = Config.keys.farmCS
+	ClearKey = Config.keys.clearCS
+	
+	if ComboKey then Combo(Target) end
+	if HarassKey or AutoHarassKey then Harass(Target) end
 	if Config.harass.q.autoQ then AutoQ() end
 	if Config.farm.q.autoQ then FarmQ() end
 	if Config.harass.e.autoE then AutoE() end
 	if Config.farm.e.autoE then FarmE() end
 	if Config.misc.w.autoW and Wready then AutoW() end
 	if Config.ks.ks then KillSteal() end
-	if Config.keys.farmCS or Config.keys.farmCS2 then LastHitMode() end
-	if Config.keys.clearCS or Config.keys.clearCS2 then LaneClearMode() end
-	if Config.keys.clearCS or Config.keys.clearCS2 then JungleClearMode() end
+	if FarmKey or Config.keys.farmCS2 and not ComboKey and not HarassKey and not AutoHarassKey then LastHitMode() end
+	if ClearKeyS or Config.keys.clearCS2 and not ComboKey and not HarassKey and not AutoHarassKey then LaneClearMode() end
+	if ClearKey or Config.keys.clearCS2 and not ComboKey and not HarassKey and not AutoHarassKey then JungleClearMode() end
 	if Config.misc.zhonyas.zhonyas then Zhonyas() end
 	if Config.draw.DD and not Config.draw.mdraw then DmgCalc() end
 end
@@ -142,6 +142,9 @@ function OnDraw()
         if Config.draw.Target2 and Target ~= nil then
             DrawCircle(Target.x, Target.y, Target.z, 80, ARGB(255, 10, 255, 10))
         end
+		if Config.draw.text and Target ~= nil then 
+			DrawText3D("Current Target", Target.x-100, Target.y-50, Target.z, 20, 0xFFFFFF00)
+		end
 		if Config.draw.drawHP then
 			for i, enemy in ipairs(GetEnemyHeroes()) do
        			if ValidTarget(enemy) then
@@ -356,7 +359,7 @@ function CastR(unit)
 end
 
 function ChaseR(unit)
-	if unit ~= nil and GetDistance(unit) <= Config.combo.r.chaseRange and Rready then
+	if unit ~= nil and GetDistance(unit) >= Config.combo.r.chaseRange and Rready then
 		if VIP_USER and Config.misc.usePackets then
 			Packet("S_CAST", {spellId = _R, targetNetworkId = unit.networkID}):send() 
 		else
@@ -505,13 +508,9 @@ function Checks()
 	
 	Igniteready = (Ignite.slot ~= nil and myHero:CanUseSpell(Ignite.slot) == READY)
 	
-	if SelectedTarget ~= nil and ValidTarget(SelectedTarget, Rrange+50) then
-		Target = SelectedTarget
-	else
-		Target = GetCustomTarget()
-	end
-	
+	Target = GetCustomTarget()
 	TargetSelector:update()
+	
 	SxOrb:ForceTarget(Target)
 	
 	if Config.draw.lfc.lfc then
@@ -569,6 +568,7 @@ function Menu()
 		Config.draw:addParam("drawDD", "Draw Dmg Text", SCRIPT_PARAM_ONOFF, true)
 		Config.draw:addParam("drawHP", "Draw Damage on HPBar", SCRIPT_PARAM_ONOFF, true)
         Config.draw:addParam("Target2", "Draw Circle around Target", SCRIPT_PARAM_ONOFF, true)
+		Config.draw:addParam("text", "Draw Current Target", SCRIPT_PARAM_ONOFF, true)
         Config.draw:addParam("myHero", "Draw AA Range", SCRIPT_PARAM_ONOFF, false)
         Config.draw:addParam("myColor", "AA Range Color", SCRIPT_PARAM_COLOR, {255, 255, 255, 255})
 		Config.draw:addParam("drawQ", "Draw Q Range", SCRIPT_PARAM_ONOFF, true)
@@ -582,44 +582,47 @@ function Menu()
 			Config.draw.lfc:addParam("CL", "Quality", 4, 75, 75, 2000, 0)
 			Config.draw.lfc:addParam("Width", "Width", 4, 1, 1, 10, 0)
 			
-		Config:addSubMenu("[Akali Elo Shower]: Misc Settings", "misc")
-		Config.misc:addSubMenu("GapCloser Spells", "ES2")
-			for i, enemy in ipairs(GetEnemyHeroes()) do
-				for _, champ in pairs(GapCloserList) do
-					if enemy.charName == champ.charName then
-						Config.misc.ES2:addParam(champ.spellName, "GapCloser "..champ.charName.." "..champ.name, SCRIPT_PARAM_ONOFF, true)
-					end
+	Config:addSubMenu("[Akali Elo Shower]: Misc Settings", "misc")
+	Config.misc:addSubMenu("GapCloser Spells", "ES2")
+		for i, enemy in ipairs(GetEnemyHeroes()) do
+			for _, champ in pairs(GapCloserList) do
+				if enemy.charName == champ.charName then
+					Config.misc.ES2:addParam(champ.spellName, "GapCloser "..champ.charName.." "..champ.name, SCRIPT_PARAM_ONOFF, true)
 				end
 			end
-		Config.misc:addParam("UG", "Auto W on enemy GapCloser (W)", SCRIPT_PARAM_ONOFF, true)
-		Config.misc:addParam("usePackets", "Use Packets (VIP Only!)", SCRIPT_PARAM_ONOFF, true)
-		Config.misc:addSubMenu("W Settings", "w")
-			Config.misc.w:addParam("autoW", "Use Auto W", SCRIPT_PARAM_ONOFF, false)
-			Config.misc.w:addParam("wCount", "Auto W Enemies", SCRIPT_PARAM_SLICE, 2, 0, 5, 0)
-			Config.misc.w:addParam("wRange", "Auto W Range", SCRIPT_PARAM_SLICE, 300, 0, 1200, 0)
-			Config.misc.w:addParam("wHealth", "Auto W Health", SCRIPT_PARAM_SLICE, 15, 0, 100, 0)
-			Config.misc.w:addParam("wCount2", "Auto LifeSafe W Enemies", SCRIPT_PARAM_SLICE, 2, 0, 5, 0)
-		Config.misc:addSubMenu("Zhonyas", "zhonyas")
-			Config.misc.zhonyas:addParam("zhonyas", "Auto Zhonyas", SCRIPT_PARAM_ONOFF, true)
-			Config.misc.zhonyas:addParam("zhonyasHP", "Use Zhonyas under % health", SCRIPT_PARAM_SLICE, 20, 0, 100 , 0)
-			Config.misc.zhonyas:addParam("zRange", "Zhonyas Range", SCRIPT_PARAM_SLICE, 500, 0, 800, 0)
-			Config.misc.zhonyas:addParam("zAmount", "Use Zhonyas if x Enemies are near", SCRIPT_PARAM_SLICE, 1, 0, 5, 0)
-			
-		Config:addSubMenu("[Akali Elo Shower]: Key Settings", "keys")
-		Config.keys:addParam("combo", "Combo Mode", SCRIPT_PARAM_ONKEYDOWN, false, 32)
-		Config.keys:addParam("harass", "Harass Mode", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("V"))
-		Config.keys:addParam("harass2", "Harass Toggle Mode", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("V"))
-		Config.keys:addParam("farmCS", "Farm Mode", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("C"))
-		Config.keys:addParam("farmCS2", "Farm Toggle Mode", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("C"))
-		Config.keys:addParam("clearCS", "Clear Mode", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("M"))
-		Config.keys:addParam("clearCS2", "Clear Toggle Mode", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("M"))
+		end
+	Config.misc:addParam("UG", "Auto W on enemy GapCloser (W)", SCRIPT_PARAM_ONOFF, true)
+	Config.misc:addParam("usePackets", "Use Packets (VIP Only!)", SCRIPT_PARAM_ONOFF, true)
+	Config.misc:addSubMenu("W Settings", "w")
+		Config.misc.w:addParam("autoW", "Use Auto W", SCRIPT_PARAM_ONOFF, false)
+		Config.misc.w:addParam("wCount", "Auto W Enemies", SCRIPT_PARAM_SLICE, 2, 0, 5, 0)
+		Config.misc.w:addParam("wRange", "Auto W Range", SCRIPT_PARAM_SLICE, 300, 0, 1200, 0)
+		Config.misc.w:addParam("wHealth", "Auto W Health", SCRIPT_PARAM_SLICE, 15, 0, 100, 0)
+		Config.misc.w:addParam("wCount2", "Auto LifeSafe W Enemies", SCRIPT_PARAM_SLICE, 2, 0, 5, 0)
+	Config.misc:addSubMenu("Zhonyas", "zhonyas")
+		Config.misc.zhonyas:addParam("zhonyas", "Auto Zhonyas", SCRIPT_PARAM_ONOFF, true)
+		Config.misc.zhonyas:addParam("zhonyasHP", "Use Zhonyas at % health", SCRIPT_PARAM_SLICE, 20, 0, 100 , 0)
+		Config.misc.zhonyas:addParam("zRange", "Zhonyas Range", SCRIPT_PARAM_SLICE, 500, 0, 800, 0)
+		Config.misc.zhonyas:addParam("zAmount", "Use Zhonyas atx Enemies", SCRIPT_PARAM_SLICE, 1, 0, 5, 0)
 		
-		Config:addSubMenu("[Akali Elo Shower]: Orbwalker", "Orbwalking")
-			SxOrb:LoadToMenu(Config.Orbwalking)
+	Config:addSubMenu("[Akali Elo Shower]: Key Settings", "keys")
+	Config.keys:addParam("combo", "Combo Mode", SCRIPT_PARAM_ONKEYDOWN, false, 32)
+	Config.keys:addParam("harass", "Harass Mode", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("V"))
+	Config.keys:addParam("harass2", "Harass Toggle Mode", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("V"))
+	Config.keys:addParam("farmCS", "Farm Mode", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("C"))
+	Config.keys:addParam("farmCS2", "Farm Toggle Mode", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("C"))
+	Config.keys:addParam("clearCS", "Clear Mode", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("M"))
+	Config.keys:addParam("clearCS2", "Clear Toggle Mode", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("M"))
+	
+	Config:addSubMenu("[Akali Elo Shower]: Orbwalker", "Orbwalking")
+		SxOrb:LoadToMenu(Config.Orbwalking)
 	
 	TargetSelector = TargetSelector(TARGET_LESS_CAST_PRIORITY, Rrange, DAMAGE_MAGIC, true)
 	TargetSelector.name = "Akali"
 	Config:addTS(TargetSelector)
+	
+	Config:addParam("info", "Version:", SCRIPT_PARAM_INFO, ""..version.."")
+	Config:addParam("info2", "Author:", SCRIPT_PARAM_INFO, ""..author.."")
 	
 	Config.keys:permaShow("combo")
 	Config.keys:permaShow("harass")
@@ -635,14 +638,16 @@ function Variables()
 	Ignite = { name = "summonerdot", range = 600, slot = nil }
 	enemyMinions = minionManager(MINION_ENEMY, Qrange, myHero, MINION_SORT_MAXHEALTH_DEC)
 	
-	_G.oldDrawCircle = rawget(_G, 'DrawCircle')
-	_G.DrawCircle = DrawCircle2	
-	
 	if myHero:GetSpellData(SUMMONER_1).name:find(Ignite.name) then
 		Ignite.slot = SUMMONER_1  
 	elseif myHero:GetSpellData(SUMMONER_2).name:find(Ignite.name) then
 		Ignite.slot = SUMMONER_2  
 	end
+	
+	_G.oldDrawCircle = rawget(_G, 'DrawCircle')
+	_G.DrawCircle = DrawCircle2	
+	
+	local ts
 	
 	SxOrb = SxOrbWalk()
 	
@@ -654,7 +659,7 @@ function Variables()
 	else
 		TwistedTreeline = false
 	end
-	
+
 	priorityTable = {
 			AP = {
 				"Annie", "Ahri", "Akali", "Anivia", "Annie", "Brand", "Cassiopeia", "Diana", "Evelynn", "FiddleSticks", "Fizz", "Gragas", "Heimerdinger", "Karthus",
@@ -879,7 +884,7 @@ function DrawIndicator(enemy)
 	Qdmg = ((Qready and Qdmg) or 0)
 	Edmg = ((Eready and Edmg) or 0)
 	Rdmg = ((Rready and Rdmg) or 0)
-	AAdmg = ((Aadmg) or 0)
+	AAdmg = ((AAdmg) or 0)
 
     local damage = Qdmg + Edmg + Rdmg + AAdmg
 
@@ -920,22 +925,33 @@ function TrueRange()
 end
 
 function GetCustomTarget()
- 	TargetSelector:update() 	
+ 	TargetSelector:update() 
+	if SelectedTarget ~= nil and ValidTarget(SelectedTarget, 1500) and (Ignore == nil or (Ignore.networkID ~= SelectedTarget.networkID)) then
+		return SelectedTarget
+	end
 	if _G.MMA_Target and _G.MMA_Target.type == myHero.type then return _G.MMA_Target end
 	if _G.AutoCarry and _G.AutoCarry.Crosshair and _G.AutoCarry.Attack_Crosshair and _G.AutoCarry.Attack_Crosshair.target and _G.AutoCarry.Attack_Crosshair.target.type == myHero.type then return _G.AutoCarry.Attack_Crosshair.target end
 	return TargetSelector.target
 end
 
 function OnWndMsg(Msg, Key)
-	if Msg == WM_LBUTTONDOWN and Config.combo.focus then
-		local dist = 0
-		local Selecttarget = nil
-		for i, enemy in ipairs(GetEnemyHeroes()) do
-			if ValidTarget(enemy) then
-				if GetDistance(enemy, mousePos) <= dist or Selecttarget == nil then
-					dist = GetDistance(enemy, mousePos)
-					Selecttarget = enemy
+	if Msg == WM_LBUTTONDOWN then
+		local minD = 0
+		local Target = nil
+		for i, unit in ipairs(GetEnemyHeroes()) do
+			if ValidTarget(unit) then
+				if GetDistance(unit, mousePos) <= minD or Target == nil then
+					minD = GetDistance(unit, mousePos)
+					Target = unit
 				end
+			end
+		end
+
+		if Target and minD < 115 then
+			if SelectedTarget and Target.charName == SelectedTarget.charName then
+				SelectedTarget = nil
+			else
+				SelectedTarget = Target
 			end
 		end
 	end
