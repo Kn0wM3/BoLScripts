@@ -6,100 +6,101 @@
 
 if myHero.charName ~= "Akali" then return end
 
-_G.AUTOUPDATE = true -- Change to "false" to disable auto updates!
+_G.AUTOUPDATE = false -- Change to "false" to disable auto updates!
 
-local version = "1.72"
+local version = "1.8"
 local author = "Kn0wM3"
 local UPDATE_HOST = "raw.github.com"
 local UPDATE_PATH = "/Kn0wM3/BoLScripts/master/Akali Elo Shower.lua".."?rand="..math.random(1,10000)
 local UPDATE_FILE_PATH = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
 local UPDATE_URL = "https://"..UPDATE_HOST..UPDATE_PATH
 function AutoupdaterMsg(msg) print("<font color=\"#FF0000\"><b>Akali Elo Shower:</b></font> <font color=\"#FFFFFF\">"..msg..".</font>") end
-if _G.AUTOUPDATE then
 	local ServerData = GetWebResult(UPDATE_HOST, "/Kn0wM3/BoLScripts/master/Akali%20Elo%20Shower.Version")
 	if ServerData then
 		ServerVersion = type(tonumber(ServerData)) == "number" and tonumber(ServerData) or nil
 		if ServerVersion then
 			if tonumber(version) < ServerVersion then
 				AutoupdaterMsg("New version available "..ServerVersion)
-				AutoupdaterMsg("Updating, please don't press F9")
-				DelayAction(function() DownloadFile(UPDATE_URL, UPDATE_FILE_PATH, function () AutoupdaterMsg("Successfully updated. ("..version.." => "..ServerVersion.."), press F9 twice to load the updated version.") end) end, 3)
-			else
-				AutoupdaterMsg("You have got the latest version ("..ServerVersion..")")
-			end
-		end
-	else
-		AutoupdaterMsg("Error downloading version info")
+				if _G.AUTOUPDATE then
+					AutoupdaterMsg("Updating, please don't press F9")
+					DelayAction(function() DownloadFile(UPDATE_URL, UPDATE_FILE_PATH, function () AutoupdaterMsg("Successfully updated. ("..version.." => "..ServerVersion.."), press F9 twice to load the updated version.") end) end, 3)
+				else AutoupdaterMsg("New Version found ("..ServerVersion..") Enable AutoUpdate or download manually!")
+				end
+				else 
+					AutoupdaterMsg("You have got the latest version ("..ServerVersion..")")
+				end
+		else
+			AutoupdaterMsg("Error downloading version info")
 	end
 end
 
-require "SxOrbWalk"
-	
-local Qready, Wready, Eready, Rready = false
-local Qrange, Erange, Rrange = 600, 325, 700
+local QRKill, ERKill, IRKill, SAC, Sx = false
+local Q = {name = "Glitterlance", range = 600, ready = function() return myHero:CanUseSpell(_Q) == READY end}
+local W = {name = "Whimsy", ready = function() return myHero:CanUseSpell(_W) == READY end}
+local E = {name = "Help, Pix!", range = 325, ready = function() return myHero:CanUseSpell(_E) == READY end}
+local R = {name = "Shadow Dance", range = 700, ready = function() return myHero:CanUseSpell(_R) == READY end}
 
-	
-	KillText = {}
-	KillTextColor = ARGB(250, 255, 38, 1)
-	local KillTextList = {		
-					"Harass Him!", 							-- 01
-					"Kill! - AA", 							-- 02
-					"Kill! - Ignite",						-- 03
-					"Kill! - (Q)",							-- 04
-					"Kill! - (E)",							-- 05
-					"Kill! - (R)",							-- 06
-					"Kill! - (Q)+(E)",						-- 07
-					"Kill! - (Q)+(R)",						-- 08
-					"Kill! - (E)+(R)",						-- 09
-					"Kill! - (Q)+(R)+(E)"					-- 10
-				}
-				
-	local GapCloserList = {
-		{charName = "Aatrox", spellName = "AatroxQ", name = "Q"},
-		{charName = "Akali", spellName = "AkaliShadowDance", name = "R"},
-		{charName = "Alistar", spellName = "Headbutt", name = "W"},
-		{charName = "Amumu", spellName = "BandageToss", name = "Q"},
-		{charName = "Fiora", spellName = "FioraQ", name = "Q"},
-		{charName = "Diana", spellName = "DianaTeleport", name = "W"},
-		{charName = "Elise", spellName = "EliseSpiderQCast", name = "W"},
-		{charName = "FiddleSticks", spellName = "Crowstorm", name = "R"},
-		{charName = "Fizz", spellName = "FizzPiercingStrike", name = "Q"},
-		{charName = "Gragas", spellName = "GragasE", name = "E"},
-		{charName = "Hecarim", spellName = "HecarimUlt", name = "R"},
-		{charName = "JarvanIV", spellName = "JarvanIVDragonStrike", name = "E"},
-		{charName = "Irelia", spellName = "IreliaGatotsu", name = "Q"},
-		{charName = "Jax", spellName = "JaxLeapStrike", name = "Q"},
-		{charName = "Katarina", spellName = "ShadowStep", name = "E"},
-		{charName = "Kassadin", spellName = "RiftWalk", name = "R"},
-		{charName = "Khazix", spellName = "KhazixE", name = "E"},
-		{charName = "Khazix", spellName = "khazixelong", name = "Evolved E"},
-		{charName = "LeBlanc", spellName = "LeblancSlide", name = "W"},
-		{charName = "LeBlanc", spellName = "LeblancSlideM", name = "UltW"},
-		{charName = "LeeSin", spellName = "BlindMonkQTwo", name = "Q"},
-		{charName = "Leona", spellName = "LeonaZenithBlade", name = "E"},
-		{charName = "Malphite", spellName = "UFSlash", name = "R"},
-		{charName = "Nautilus", spellName = "NautilusAnchorDrag", name = "Q"},
-		{charName = "Pantheon", spellName = "Pantheon_LeapBash", name = "R"},
-		{charName = "Poppy", spellName = "PoppyHeroicCharge", name = "W"},
-		{charName = "Renekton", spellName = "RenektonSliceAndDice", name = "E"},
-		{charName = "Riven", spellName = "RivenTriCleave", name = "E"},
-		{charName = "Sejuani", spellName = "SejuaniArcticAssault", name = "E"},
-		{charName = "Shen", spellName = "ShenShadowDash", name = "E"},
-		{charName = "Tristana", spellName = "RocketJump", name = "W"},
-		{charName = "Tryndamere", spellName = "slashCast", name = "E"},
-		{charName = "Vi", spellName = "ViQ", name = "Q"},
-		{charName = "MonkeyKing", spellName = "MonkeyKingNimbus", name = "Q"},
-		{charName = "XinZhao", spellName = "XenZhaoSweep", name = "Q"},
-		{charName = "Yasuo", spellName = "YasuoDashWrapper", name = "E"},
-	}
-	
+local GapCloserList = {
+	{charName = "Aatrox", spellName = "AatroxQ", name = "Q"},
+	{charName = "Akali", spellName = "AkaliShadowDance", name = "R"},
+	{charName = "Alistar", spellName = "Headbutt", name = "W"},
+	{charName = "Amumu", spellName = "BandageToss", name = "Q"},
+	{charName = "Fiora", spellName = "FioraQ", name = "Q"},
+	{charName = "Diana", spellName = "DianaTeleport", name = "W"},
+	{charName = "Elise", spellName = "EliseSpiderQCast", name = "W"},
+	{charName = "FiddleSticks", spellName = "Crowstorm", name = "R"},
+	{charName = "Fizz", spellName = "FizzPiercingStrike", name = "Q"},
+	{charName = "Gragas", spellName = "GragasE", name = "E"},
+	{charName = "Hecarim", spellName = "HecarimUlt", name = "R"},
+	{charName = "JarvanIV", spellName = "JarvanIVDragonStrike", name = "E"},
+	{charName = "Irelia", spellName = "IreliaGatotsu", name = "Q"},
+	{charName = "Jax", spellName = "JaxLeapStrike", name = "Q"},
+	{charName = "Katarina", spellName = "ShadowStep", name = "E"},
+	{charName = "Kassadin", spellName = "RiftWalk", name = "R"},
+	{charName = "Khazix", spellName = "KhazixE", name = "E"},
+	{charName = "Khazix", spellName = "khazixelong", name = "Evolved E"},
+	{charName = "LeBlanc", spellName = "LeblancSlide", name = "W"},
+	{charName = "LeBlanc", spellName = "LeblancSlideM", name = "UltW"},
+	{charName = "LeeSin", spellName = "BlindMonkQTwo", name = "Q"},
+	{charName = "Leona", spellName = "LeonaZenithBlade", name = "E"},
+	{charName = "Malphite", spellName = "UFSlash", name = "R"},
+	{charName = "Nautilus", spellName = "NautilusAnchorDrag", name = "Q"},
+	{charName = "Pantheon", spellName = "Pantheon_LeapBash", name = "R"},
+	{charName = "Poppy", spellName = "PoppyHeroicCharge", name = "W"},
+	{charName = "Renekton", spellName = "RenektonSliceAndDice", name = "E"},
+	{charName = "Riven", spellName = "RivenTriCleave", name = "E"},
+	{charName = "Sejuani", spellName = "SejuaniArcticAssault", name = "E"},
+	{charName = "Shen", spellName = "ShenShadowDash", name = "E"},
+	{charName = "Tristana", spellName = "RocketJump", name = "W"},
+	{charName = "Tryndamere", spellName = "slashCast", name = "E"},
+	{charName = "Vi", spellName = "ViQ", name = "Q"},
+	{charName = "MonkeyKing", spellName = "MonkeyKingNimbus", name = "Q"},
+	{charName = "XinZhao", spellName = "XenZhaoSweep", name = "Q"},
+	{charName = "Yasuo", spellName = "YasuoDashWrapper", name = "E"},
+}
+
 function OnLoad()
-	Menu()
-	Variables()
 	PriorityOnLoad()
+	
+	if _G.Reborn_Loaded ~= nil then
+		SAC = true
+	else 
+		Sx = true
+		require "SxOrbWalk"
+	end
+	CustomOnLoad()
 end
 
-function OnTick()
+function CustomOnLoad()
+	AddMsgCallback(CustomOnWndMsg)
+	AddDrawCallback(CustomOnDraw)		
+	AddProcessSpellCallback(CustomOnProcessSpell)
+	AddTickCallback(CustomOnTick)
+	Variables()
+	Menu()
+end
+
+function CustomOnTick()
 	Checks()
 	
 	if myHero.dead then return end
@@ -116,25 +117,24 @@ function OnTick()
 	if Config.farm.q.autoQ then FarmQ() end
 	if Config.harass.e.autoE then AutoE() end
 	if Config.farm.e.autoE then FarmE() end
-	if Config.misc.w.autoW and Wready then AutoW() end
+	if Config.misc.w.autoW and W.ready then AutoW() end
 	if Config.ks.ks then KillSteal() end
 	if FarmKey or Config.keys.farmCS2 and not ComboKey and not HarassKey and not AutoHarassKey then LastHitMode() end
 	if ClearKeyS or Config.keys.clearCS2 and not ComboKey and not HarassKey and not AutoHarassKey then LaneClearMode() end
 	if ClearKey or Config.keys.clearCS2 and not ComboKey and not HarassKey and not AutoHarassKey then JungleClearMode() end
 	if Config.misc.zhonyas.zhonyas then Zhonyas() end
-	if Config.draw.DD and not Config.draw.mdraw then DmgCalc() end
 end
 
-function OnDraw()
+function CustomOnDraw()
 	if not myHero.dead and not Config.draw.mdraw then
-		if Config.draw.drawQ and Qready then
-			DrawCircle(myHero.x, myHero.y, myHero.z, Qrange, RGB(Config.draw.qColor[2], Config.draw.qColor[2], Config.draw.qColor[4]))
+		if Config.draw.drawQ and Q.ready then
+			DrawCircle(myHero.x, myHero.y, myHero.z, Q.range, RGB(Config.draw.qColor[2], Config.draw.qColor[2], Config.draw.qColor[4]))
 		end
-		if Config.draw.drawE and Eready then
-			DrawCircle(myHero.x, myHero.y, myHero.z, Erange, RGB(Config.draw.eColor[2], Config.draw.eColor[3], Config.draw.eColor[4]))
+		if Config.draw.drawE and E.ready then
+			DrawCircle(myHero.x, myHero.y, myHero.z, E.range, RGB(Config.draw.eColor[2], Config.draw.eColor[3], Config.draw.eColor[4]))
 		end
-		if Config.draw.drawR and Rready then
-			DrawCircle(myHero.x, myHero.y, myHero.z, Rrange, RGB(Config.draw.rColor[2], Config.draw.rColor[3], Config.draw.rColor[4]))
+		if Config.draw.drawR and R.ready then
+			DrawCircle(myHero.x, myHero.y, myHero.z, R.range, RGB(Config.draw.rColor[2], Config.draw.rColor[3], Config.draw.rColor[4]))
 		end
         if Config.draw.myHero then
             DrawCircle(myHero.x, myHero.y, myHero.z, TrueRange(), RGB(Config.draw.myColor[2], Config.draw.myColor[3], Config.draw.myColor[4]))
@@ -142,7 +142,7 @@ function OnDraw()
         if Config.draw.Target2 and Target ~= nil then
             DrawCircle(Target.x, Target.y, Target.z, 80, ARGB(255, 10, 255, 10))
         end
-		if Config.draw.text and Target ~= nil then 
+		if Config.draw.text and Target ~= nil and Target.type == myHero.type then 
 			DrawText3D("Current Target", Target.x-100, Target.y-50, Target.z, 20, 0xFFFFFF00)
 		end
 		if Config.draw.drawHP then
@@ -153,13 +153,11 @@ function OnDraw()
 			end
 		end
 		if Config.draw.drawDD then
-			for i = 1, heroManager.iCount do
-				local enemy = heroManager:GetHero(i)
-				if ValidTarget(enemy) and enemy ~= nil then
-					local barPos = WorldToScreen(D3DXVECTOR3(enemy.x, enemy.y, enemy.z))
-					local PosX = barPos.x - 60
-					local PosY = barPos.y - 10
-					DrawText(KillTextList[KillText[i]], 20, PosX, PosY, KillTextColor)
+			DmgCalc()
+			for _, enemy in ipairs(GetEnemyHeroes()) do
+				if ValidTarget(enemy, 100000) and killstring[enemy.networkID] ~= nil then
+					local pos = WorldToScreen(D3DXVECTOR3(enemy.x, enemy.y, enemy.z))
+					DrawText(killstring[enemy.networkID], 20, pos.x - 35, pos.y - 40, 0xFFFFFF00)
 				end
 			end
 		end
@@ -195,15 +193,15 @@ function Combo(unit)
 		if Config.combo.useItems then
 			UseItems(unit)
 		end
-		if Config.combo.r.useR and Config.combo.r.chaseR and Rready then
-			if Config.combo.w.useW and Wready then
+		if Config.combo.r.useR and Config.combo.r.chaseR and R.ready then
+			if Config.combo.w.useW and W.ready then
 			ChaseR(unit)
 			DelayAction(function() CastSpell(_W, myHero.x, myHero.z) end, 0.5)
 		else 
 			ChaseR(unit)
 			end
 		end
-		if Config.combo.r.useR and Config.combo.w.useW and Wready and Rready then
+		if Config.combo.r.useR and Config.combo.w.useW and W.ready and R.ready then
 			CastR(unit)
 			DelayAction(function() CastSpell(_W, myHero.x, myHero.z) end, 0.5)
 		else 
@@ -212,7 +210,7 @@ function Combo(unit)
 		if Config.combo.q.useQ then
 			CastQ(unit)
 		end
-		if Config.combo.e.useE and not Qready then
+		if Config.combo.e.useE and not Q.ready then
 			CastE(unit)
 		end
 	end
@@ -223,7 +221,7 @@ function Harass(unit)
 		if Config.harass.q.useQ then 
 			CastQ(unit)
 		end
-		if Config.harass.e.useE and not Qready then
+		if Config.harass.e.useE and not Q.ready then
 			CastE(unit)
 		end
 	end
@@ -233,10 +231,10 @@ function LastHitMode()
 	enemyMinions:update()
 		for i, minion in pairs(enemyMinions.objects) do
 			if minion ~= nil then
-				if ValidTarget(minion, Qrange) and Config.farm.q.farmQ and Qready and GetDistance(minion) > Erange and not Eready and getDmg("Q", minion, myHero) >= minion.health then
+				if ValidTarget(minion, Q.range) and Config.farm.q.farmQ and Q.ready and GetDistance(minion) > E.range and not E.ready and getDmg("Q", minion, myHero) >= minion.health then
 					CastSpell(_Q, minion)
 				end
-				if ValidTarget(minion, Erange) and Config.farm.e.farmE and Eready and getDmg("E", minion, myHero) >= minion.health then 
+				if ValidTarget(minion, E.range) and Config.farm.e.farmE and E.ready and getDmg("E", minion, myHero) >= minion.health then 
 					CastSpell(_E)
 			end
 		end
@@ -246,15 +244,15 @@ end
 function LaneClearMode()
 	enemyMinions:update()
 		for i, minion in pairs(enemyMinions.objects) do
-			if minion ~= nil and ValidTarget(minion, Qrange) then
-				if Qready and Config.farm.q.clearQ then
+			if minion ~= nil and ValidTarget(minion, Q.range) then
+				if Q.ready and Config.farm.q.clearQ then
 					if getDmg("Q", minion, myHero) >= minion.health then
 						CastSpell(_Q, minion)
 					else 
 						CastSpell(_Q, minion)
 					end
 				end
-				if ValidTarget(minion, Erange) and Eready and Config.farm.e.clearE then
+				if ValidTarget(minion, E.range) and E.ready and Config.farm.e.clearE then
 					if getDmg("E", minion, myHero) >= minion.health then
 						CastSpell(_E, minion)
 					else
@@ -269,17 +267,17 @@ function JungleClearMode()
 	local JungleMob = GetJungleMob()
 	
 	if JungleMob ~= nil then
-		if Config.farm.q.jungleQ and GetDistance(JungleMob) <= Qrange and Qready then
+		if Config.farm.q.jungleQ and GetDistance(JungleMob) <= Q.range and Q.ready then
 			CastSpell(_Q, JungleMob)
 		end
-		if Config.farm.e.jungleE and GetDistance(JungleMob) <= Erange and Eready and not Qready then
+		if Config.farm.e.jungleE and GetDistance(JungleMob) <= E.range and E.ready and not Q.ready then
 			CastSpell(_E)
 		end
 	end
 end
 
 function CastQ(unit)
-	if unit ~= nil and GetDistance(unit) <= Qrange and Qready then
+	if unit ~= nil and GetDistance(unit) <= Q.range and Q.ready then
 		if VIP_USER and Config.misc.usePackets then
 			Packet("S_CAST", {spellId = _Q, targetNetworkId = unit.networkID}):send()
 		else
@@ -290,8 +288,8 @@ end
 
 function AutoQ()
     for _, enemy in ipairs(GetEnemyHeroes()) do 
-        if enemy ~= nil and ValidTarget(enemy, Qrange) then
-            if GetDistance(enemy) <= Qrange and Qready then
+        if enemy ~= nil and ValidTarget(enemy, Q.range) then
+            if GetDistance(enemy) <= Q.range and Q.ready then
                 if VIP_USER and Config.misc.usePackets then
                     Packet("S_CAST", {spellId = _Q, targetNetworkId = enemy.networkID}):send()
                 else
@@ -306,7 +304,7 @@ function FarmQ()
     enemyMinions:update()
     for i, minion in pairs(enemyMinions.objects) do
         if minion ~= nil then
-            if ValidTarget(minion, Qrange) and Qready and getDmg("Q", minion, myHero) >= minion.health then
+            if ValidTarget(minion, Q.range) and Q.ready and getDmg("Q", minion, myHero) >= minion.health then
                 CastSpell(_Q, minion)
             end
         end
@@ -314,7 +312,7 @@ function FarmQ()
 end
 
 function CastE(unit)
-	if unit ~= nil and GetDistance(unit) <= Erange and Eready then
+	if unit ~= nil and GetDistance(unit) <= E.range and E.ready then
 		if VIP_USER and Config.misc.usePackets then
 			Packet("S_CAST", {spellId = _E, targetNetworkId = unit.networkID}):send() 
 		else
@@ -325,8 +323,8 @@ end
 
 function AutoE()
 	for _, enemy in ipairs(GetEnemyHeroes()) do 
-        if enemy ~= nil and ValidTarget(enemy, Erange) then
-            if GetDistance(enemy) <= Erange and Eready then
+        if enemy ~= nil and ValidTarget(enemy, E.range) then
+            if GetDistance(enemy) <= E.range and E.ready then
                 if VIP_USER and Config.misc.usePackets then
                     Packet("S_CAST", {spellId = _E}):send()
                 else
@@ -341,7 +339,7 @@ function FarmE()
     enemyMinions:update()
     for i, minion in pairs(enemyMinions.objects) do
         if minion ~= nil then
-            if ValidTarget(minion, Erange) and Eready and getDmg("E", minion, myHero) >= minion.health then 
+            if ValidTarget(minion, E.range) and E.ready and getDmg("E", minion, myHero) >= minion.health then 
                 CastSpell(_E)
             end
         end
@@ -349,7 +347,7 @@ function FarmE()
 end
 
 function CastR(unit)
-	if unit ~= nil and GetDistance(unit) <= Rrange and Rready then
+	if unit ~= nil and GetDistance(unit) <= R.range and R.ready then
 		if VIP_USER and Config.misc.usePackets then
 			Packet("S_CAST", {spellId = _R, targetNetworkId = unit.networkID}):send() 
 		else
@@ -359,7 +357,7 @@ function CastR(unit)
 end
 
 function ChaseR(unit)
-	if unit ~= nil and GetDistance(unit) >= Config.combo.r.chaseRange and Rready then
+	if unit ~= nil and GetDistance(unit) >= Config.combo.r.chaseRange and R.ready then
 		if VIP_USER and Config.misc.usePackets then
 			Packet("S_CAST", {spellId = _R, targetNetworkId = unit.networkID}):send() 
 		else
@@ -368,45 +366,88 @@ function ChaseR(unit)
 	end
 end
 
+function KillStealR(unit)
+	if ((myHero.health/myHero.maxHealth)*100) <= Config.ks.KSRHP then
+		if QRKill then
+			if unit ~= nil and GetDistance(unit) < (R.range+Q.range) and GetDistance(unit) > R.range then
+				local champ= GetHero() or GetMinion()
+				if champ ~= nil and GetDistance(champ, unit) < Q.range then
+					CastR(champ)
+					DelayAction(function() CastQ(unit) end, 0.5)
+				end
+			end
+		elseif ERKill then
+			if unit ~= nil and GetDistance(unit) < (R.range+E.range) and GetDistance(unit) > R.range then
+				local champ = GetHero() or GetMinion()
+				if champ ~= nil and GetDistance(champ, unit) < Q.range then
+					CastR(champ)
+					DelayAction(function() CastE(unit) end, 0.5)
+				end
+			end
+		elseif IRKill then
+			if unit ~= nil and GetDistance(unit) (R.range+Ignite.range) and GetDistance(unit) > R.range then
+				local champ = GetHero() or GetMinion()
+				if champ ~= nil and GetDistance(champ, unit) > Q.range then
+					CastR(champ)
+					DelayAction(function() CastSpell(Ignite.slot, unit) end, 0.5)
+				end
+			end
+		end
+	end
+end
+
 function KillSteal()
 	for _, enemy in ipairs(GetEnemyHeroes()) do	
-			local IDMG = (50 + (20 * myHero.level))
+			local iDmg = (50 + (20 * myHero.level))
 			local qDmg = getDmg("Q", enemy, myHero)
 			local eDmg = getDmg("E", enemy, myHero)
 			local rDmg = getDmg("R", enemy, myHero)
-			local dfgslot = GetInventorySlotItem(3128)
-			local dfgready = (DFGSlot ~= nil and myHero:CanUseSpell(DFGSlot) == READY)
-		if enemy ~= nil and ValidTarget(enemy, Rrange) then
-			if enemy.health <= qDmg and ValidTarget(enemy, Qrange) and Qready then
+		if enemy ~= nil and ValidTarget(enemy, R.range) then
+			if enemy.health <= qDmg and ValidTarget(enemy, Q.range) and Q.ready then
 				CastQ(enemy)
-			elseif enemy.health <= (qDmg + eDmg) and ValidTarget(enemy, Erange) and Qready and Eready then
+			elseif enemy.health <= (qDmg + eDmg) and ValidTarget(enemy, E.range) and Q.ready and E.ready then
 				CastQ(enemy)
 				CastE(enemy)
-			elseif enemy.health <= (qDmg + rDmg) and ValidTarget(enemy, Rrange) and Qready and Rready and Config.ks.useR then
+			elseif enemy.health <= (qDmg + rDmg) and ValidTarget(enemy, R.range) and Q.ready and R.ready and Config.ks.useR then
 				CastR(enemy)
 				CastQ(enemy)
-			elseif enemy.health <= (qDmg + IDMG) and ValidTarget(enemy, Qrange) and Qready and Igniteready then
+			elseif enemy.health <= (qDmg + rDmg) and ValidTarget(enemy, R.range+Q.range) and GetDistance(enemy) > R.range and Q.ready and R.ready and Config.ks.useR and Config.ks.useR2 then
+				KillStealR(enemy)
+				QRKill = true
+				ERKill = false
+				IRKill = false
+			elseif enemy.health <= (eDmg+rDmg) and ValidTarget(enemy, R.range+E.range) and GetDistance(enemy) > R.range and E.ready and R.ready and Config.ks.useR and Config.ks.useR2 then
+				KillStealR(enemy)
+				QRKill = false
+				ERKill = true
+				IRKill = false
+			elseif enemy.health <= (iDmg+rDmg) and ValidTarget(enemy, R.range+Ignite.range) and GetDistance(enemy) > R.range and Igniteready and R.ready and Config.ks.useR and Config.ks.useR2 then
+				KillStealR(enemy)
+				QRKill = false
+				ERKill = false
+				IRKill = true
+			elseif enemy.health <= (qDmg + iDmg) and ValidTarget(enemy, Q.range) and Q.ready and Igniteready then
 				CastQ(enemy)
 				CastSpell(Ignite.slot, enemy)
-			elseif enemy.health <= eDmg and ValidTarget(enemy, Erange) and Eready then
+			elseif enemy.health <= eDmg and ValidTarget(enemy, E.range) and E.ready then
 				CastE(enemy)
-			elseif enemy.health <= (eDmg + rDmg) and ValidTarget(enemy, Rrange) and Rready and Eready and Config.ks.useR then
+			elseif enemy.health <= (eDmg + rDmg) and ValidTarget(enemy, R.range) and R.ready and E.ready and Config.ks.useR then
 				CastR(enemy)
 				CastE(enemy)
-			elseif enemy.health <= (eDmg + IDMG) and ValidTarget(enemy, Erange) and Eready and Igniteready then
+			elseif enemy.health <= (eDmg + iDmg) and ValidTarget(enemy, E.range) and E.ready and Igniteready then
 				CastE(enemy)
 				CastSpell(Ignite.slot, enemy)
-			elseif enemy.health <= rDmg and ValidTarget(enemy, Rrange) and Rready and Config.ks.useR then
+			elseif enemy.health <= rDmg and ValidTarget(enemy, R.range) and R.ready and Config.ks.useR then
 				CastR(enemy)
-			elseif enemy.health <= (rDmg + IDMG) and ValidTarget(enemy, Rrange) and Rready and Igniteready and Config.ks.useR then
+			elseif enemy.health <= (rDmg + iDmg) and ValidTarget(enemy, R.range) and R.ready and Igniteready and Config.ks.useR then
 				CastR(enemy)
 				CastSpell(Ignite.slot, enemy)
-			elseif enemy.health <= (qDmg + eDmg + rDmg + IDMG) and ValidTarget(enemy, Rrange) and Qready and Eready and Rready and Config.ks.useR then
+			elseif enemy.health <= (qDmg + eDmg + rDmg + iDmg) and ValidTarget(enemy, R.range) and Q.ready and E.ready and R.ready and Config.ks.useR then
 				CastR(enemy)
 				CastQ(enemy)
 				CastE(enemy)
 				CastSpell(Ignite.slot, enemy)
-			elseif enemy.health <= (qDmg + eDmg + rDmg) and ValidTarget(enemy, Rrange) and Qready and Eready and Rready and Config.ks.useR then
+			elseif enemy.health <= (qDmg + eDmg + rDmg) and ValidTarget(enemy, R.range) and Q.ready and E.ready and R.ready and Config.ks.useR then
 				CastR(enemy)
 				CastE(enemy)
 				CastQ(enemy)
@@ -419,61 +460,40 @@ end
 function DmgCalc()
 	for i=1, heroManager.iCount do
 		local enemy = heroManager:GetHero(i)
-			if ValidTarget(enemy) and enemy ~= nil then
-				aaDmg 		= ((getDmg("AD", enemy, myHero)))
-				qDmg 		= ((getDmg("Q", enemy, myHero)) or 0)	
-				rDmg		= ((getDmg("R", enemy, myHero)) or 0)	
-				eDmg		= ((getDmg("E", enemy, myHero)) or 0)	
-				iDmg 		= ((ignite and getDmg("IGNITE", enemy, myHero)) or 0)
-	-- Set Kill Text --	
-					-- "Kill! - AA" --
-					if enemy.health <= aaDmg
-						then
-							KillText[i] = 2
-							
-					-- "Kill! - Ignite" --
-					if enemy.health <= iDmg
-						then
-							 KillText[i] = 3
-							 
-					-- "Kill! - (Q)" --
-					elseif enemy.health <= qDmg
-						then
-							KillText[i] = 4
-							
-					-- "Kill! - (E)" --
-					elseif enemy.health <= eDmg
-						then
-							KillText[i] = 5
-							
-					-- "Kill! - (R)" --
-					elseif enemy.health <= rDmg
-						then
-							KillText[i] = 6
-							
-					-- "Kill! - (Q)+(E)" --
-					elseif enemy.health <= (qDmg+eDmg)
-						then
-							KillText[i] = 7
-							
-					-- "Kill! - (Q)+(R)" --
-					elseif enemy.health <= (qDmg+rDmg)
-						then
-							KillText[i] = 8
-							
-					-- "Kill! - (R)+(E)" --
-					elseif enemy.health <= (rDmg+eDmg)
-						then
-							KillText[i] = 9
-							
-					-- "Kill! - (Q)+(R)+(E)" --
-					elseif enemy.health <= (qDmg+rDmg+eDmg)
-						then
-							KillText[i] = 10
-							
-					-- "Harass your enemy!" -- 
-					else KillText[i] = 1
-				end
+			if enemy ~= nil and ValidTarget(enemy) then
+			local hp = enemy.health
+			local iDmg = (50 + (20 * myHero.level))
+			local qDmg = getDmg("Q", enemy, myHero)
+			local eDmg = getDmg("E", enemy, myHero)
+			local rDmg = getDmg("R", enemy, myHero)
+			if hp > (qDmg+eDmg+iDmg) then
+				killstring[enemy.networkID] = "Harass Him!!!"
+			elseif hp < qDmg then
+				killstring[enemy.networkID] = "Q Kill!"
+			elseif hp < eDmg then
+				killstring[enemy.networkID] = "E Kill!"
+			elseif hp < rDmg then
+				killstring[enemy.networkID] = "R Kill!"
+            elseif hp < (iDmg) then
+                killstring[enemy.networkID] = "Ignite Kill!"
+			elseif hp < (qDmg+iDmg) then
+				killstring[enemy.networkID] = "Q+Ignite Kill!"
+			elseif hp < (eDmg+iDmg) then
+				killstring[enemy.networkID] = "E+Ignite Kill!"
+			elseif hp < (rDmg+iDmg) then
+				killstring[enemy.networkID] = "R+Ignite Kill!"
+			elseif hp < (qDmg+eDmg) then
+                killstring[enemy.networkID] = "Q+E Kill!"
+			elseif hp < (qDmg+rDmg) then
+				killstring[enemy.networkID] = "Q+R Kill!"
+			elseif hp < (eDmg+rDmg) then
+				killstring[enemy.networkID] = "E+R Kill!"
+			elseif hp < (qDmg+eDmg+rDmg) then
+				killstring[enemy.networkID] = "Q+E+R Kill!"
+			elseif hp < (qDmg+eDmg+iDmg) then
+                killstring[enemy.networkID] = "Q+E+Ignite Kill!"
+			elseif hp < (qDmg+eDmg+rDmg+iDmg) then
+				killstring[enemy.networkID] = "Q+E+R+Ignite Kill!"
 			end
 		end
 	end
@@ -501,17 +521,19 @@ function Zhonyas()
 end
 
 function Checks()
-	Qready = (myHero:CanUseSpell(_Q) == READY)
-	Wready = (myHero:CanUseSpell(_W) == READY)
-	Eready = (myHero:CanUseSpell(_E) == READY)
-	Rready = (myHero:CanUseSpell(_R) == READY)
+	Q.ready = (myHero:CanUseSpell(_Q) == READY)
+	W.ready = (myHero:CanUseSpell(_W) == READY)
+	E.ready = (myHero:CanUseSpell(_E) == READY)
+	R.ready = (myHero:CanUseSpell(_R) == READY)
 	
 	Igniteready = (Ignite.slot ~= nil and myHero:CanUseSpell(Ignite.slot) == READY)
 	
 	Target = GetCustomTarget()
 	TargetSelector:update()
 	
-	SxOrb:ForceTarget(Target)
+	if Sx then
+		SxOrb:ForceTarget(Target)
+	end
 	
 	if Config.draw.lfc.lfc then
 		_G.DrawCircle = DrawCircle2
@@ -561,6 +583,8 @@ function Menu()
 	Config:addSubMenu("[Akali Elo Shower]: Killsteal Settings", "ks")
 		Config.ks:addParam("ks", "Use SmartKS", SCRIPT_PARAM_ONOFF, true)
 		Config.ks:addParam("useR", "Use R to KS(Risky!)", SCRIPT_PARAM_ONOFF, true)
+		Config.ks:addParam("useR2", "Use R on Minions/Enemies to KS", SCRIPT_PARAM_ONOFF, true)
+		Config.ks:addParam("KSRHP", "Min. HP %", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
 		Config.ks:addParam("autoignite", "Auto Ignite to KS", SCRIPT_PARAM_ONOFF, true)
 		
 	Config:addSubMenu("[Akali Elo Shower]: Draw Setttings", "draw")
@@ -615,9 +639,13 @@ function Menu()
 	Config.keys:addParam("clearCS2", "Clear Toggle Mode", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("M"))
 	
 	Config:addSubMenu("[Akali Elo Shower]: Orbwalker", "Orbwalking")
+	if Sx then
 		SxOrb:LoadToMenu(Config.Orbwalking)
+	elseif SAC then
+		Config.Orbwalking:addParam("qqq", "SAC Detected and Loaded!", SCRIPT_PARAM_INFO,"")
+	end
 	
-	TargetSelector = TargetSelector(TARGET_LESS_CAST_PRIORITY, Rrange, DAMAGE_MAGIC, true)
+	TargetSelector = TargetSelector(TARGET_LESS_CAST_PRIORITY, R.range, DAMAGE_MAGIC, true)
 	TargetSelector.name = "Akali"
 	Config:addTS(TargetSelector)
 	
@@ -636,7 +664,7 @@ end
 function Variables()
 	
 	Ignite = { name = "summonerdot", range = 600, slot = nil }
-	enemyMinions = minionManager(MINION_ENEMY, Qrange, myHero, MINION_SORT_MAXHEALTH_DEC)
+	enemyMinions = minionManager(MINION_ENEMY, Q.range, myHero, MINION_SORT_MAXHEALTH_DEC)
 	
 	if myHero:GetSpellData(SUMMONER_1).name:find(Ignite.name) then
 		Ignite.slot = SUMMONER_1  
@@ -649,8 +677,11 @@ function Variables()
 	
 	local ts
 	
-	SxOrb = SxOrbWalk()
+	if Sx then
+		SxOrb = SxOrbWalk()
+	end
 	
+	killstring = {}
 	JungleMobs = {}
 	JungleFocusMobs = {}
 	
@@ -818,10 +849,10 @@ end
 
 function GetJungleMob()
 	for _, Mob in pairs(JungleFocusMobs) do
-		if ValidTarget(Mob, Qrange) then return Mob end
+		if ValidTarget(Mob, Q.range) then return Mob end
 	end
 	for _, Mob in pairs(JungleMobs) do
-		if ValidTarget(Mob, Qrange) then return Mob end
+		if ValidTarget(Mob, Q.range) then return Mob end
 	end
 end
 
@@ -881,9 +912,9 @@ end
 function DrawIndicator(enemy)
 	local Qdmg, Edmg, Rdmg, AAdmg = getDmg("Q", enemy, myHero), getDmg("E", enemy, myHero), getDmg("R", enemy, myHero), getDmg("AD", enemy, myHero)
 	
-	Qdmg = ((Qready and Qdmg) or 0)
-	Edmg = ((Eready and Edmg) or 0)
-	Rdmg = ((Rready and Rdmg) or 0)
+	Qdmg = ((Q.ready and Qdmg) or 0)
+	Edmg = ((E.ready and Edmg) or 0)
+	Rdmg = ((R.ready and Rdmg) or 0)
 	AAdmg = ((AAdmg) or 0)
 
     local damage = Qdmg + Edmg + Rdmg + AAdmg
@@ -924,6 +955,24 @@ function TrueRange()
     return myHero.range + GetDistance(myHero, myHero.minBBox)
 end
 
+function GetHero()
+	for i = 1, heroManager.iCount, 1 do
+		local unit = heroManager:getHero(i)
+		if not unit.dead and ValidTarget(unit) and ValidTarget(unit, E.range) and unit ~= myHero then 
+			return unit
+		end
+	end
+end
+
+function GetMinion()
+	enemyMinions:update()
+	for i, minion in pairs(enemyMinions.objects) do
+		if minion ~= nil and not minion.dead and GetDistance(minion) <= E.range then
+			return minion
+		end
+	end
+end
+
 function GetCustomTarget()
  	TargetSelector:update() 
 	if SelectedTarget ~= nil and ValidTarget(SelectedTarget, 1500) and (Ignore == nil or (Ignore.networkID ~= SelectedTarget.networkID)) then
@@ -934,7 +983,7 @@ function GetCustomTarget()
 	return TargetSelector.target
 end
 
-function OnWndMsg(Msg, Key)
+function CustomOnWndMsg(Msg, Key)
 	if Msg == WM_LBUTTONDOWN then
 		local minD = 0
 		local Target = nil
@@ -987,8 +1036,8 @@ function DrawCircle2(x, y, z, radius, color)
   end
 end
 
-function OnProcessSpell(unit, spell)
-	if Config.misc.UG and Wready then
+function CustomOnProcessSpell(unit, spell)
+	if Config.misc.UG and W.ready then
 		for _, x in pairs(GapCloserList) do
 			if unit and unit.team ~= myHero.team and unit.type == myHero.type and spell then
 				if spell.name == x.spellName and Config.misc.ES2[x.spellName] and ValidTarget(unit, Config.misc.w.wRange) then
