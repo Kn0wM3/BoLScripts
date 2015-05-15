@@ -209,6 +209,7 @@ function Combo(unit)
 		end
 		if Config.combo.q.useQ then
 			CastQ(unit)
+			myHero:Attack(unit)
 		end
 		if Config.combo.e.useE and not Q.ready then
 			CastE(unit)
