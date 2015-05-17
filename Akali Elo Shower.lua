@@ -8,7 +8,7 @@ if myHero.charName ~= "Akali" then return end
 
 _G.AUTOUPDATE = false -- Change to "false" to disable auto updates!
 
-local version = "1.8"
+local version = "1.81"
 local author = "Kn0wM3"
 local UPDATE_HOST = "raw.github.com"
 local UPDATE_PATH = "/Kn0wM3/BoLScripts/master/Akali Elo Shower.lua".."?rand="..math.random(1,10000)
@@ -35,9 +35,9 @@ function AutoupdaterMsg(msg) print("<font color=\"#FF0000\"><b>Akali Elo Shower:
 end
 
 local QRKill, ERKill, IRKill, SAC, Sx = false
-local Q = {name = "Glitterlance", range = 600, ready = function() return myHero:CanUseSpell(_Q) == READY end}
-local W = {name = "Whimsy", ready = function() return myHero:CanUseSpell(_W) == READY end}
-local E = {name = "Help, Pix!", range = 325, ready = function() return myHero:CanUseSpell(_E) == READY end}
+local Q = {name = "Mark of the Assassin", range = 600, ready = function() return myHero:CanUseSpell(_Q) == READY end}
+local W = {name = "Twillight Shroud", ready = function() return myHero:CanUseSpell(_W) == READY end}
+local E = {name = "Crescent Slash", range = 325, ready = function() return myHero:CanUseSpell(_E) == READY end}
 local R = {name = "Shadow Dance", range = 700, ready = function() return myHero:CanUseSpell(_R) == READY end}
 
 local GapCloserList = {
